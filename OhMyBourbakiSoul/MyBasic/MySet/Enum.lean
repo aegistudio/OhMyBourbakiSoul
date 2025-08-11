@@ -1,5 +1,5 @@
 import OhMyBourbakiSoul.MyBasic.MySet.Basic
-import OhMyBourbakiSoul.MyBasic.MyExistsUniq
+import OhMyBourbakiSoul.MyBasic.MyLogic.ExistsUniq
 
 universe u
 variable {α : Type u}
