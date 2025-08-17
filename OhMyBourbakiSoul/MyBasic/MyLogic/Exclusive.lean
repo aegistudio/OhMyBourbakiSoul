@@ -45,3 +45,41 @@ theorem exclusive_if_decidable
   match D with
     | isTrue (hp : p) => exact Or.inl hp
     | isFalse (hnp : ¬p) => exact Or.inr hnp
+
+namespace Exclusive
+
+variable {p q : Prop}
+
+theorem dne (hx : Exclusive p) : (¬¬p ↔ p) := by
+  apply Iff.intro
+  · intro hnnp
+    apply Or.elim hx
+    · intro hp
+      exact hp
+    · intro hnp
+      exfalso
+      contradiction
+  · intro hp hnp
+    contradiction
+
+theorem contrapositive (hx : Exclusive q) :
+  (p → q) ↔ (¬q → ¬p):= by
+  apply Iff.intro
+  · intro hpq hnq hp
+    have hnq := hpq hp
+    contradiction
+  · intro hnqnp hp
+    apply Or.elim hx
+    · intro hq
+      exact hq
+    · intro hnq
+      exfalso
+      have hnp := hnqnp hnq
+      contradiction
+
+theorem by_contra (hx : Exclusive p) :
+  (¬p → False) → p := by
+  change (¬¬p) → p
+  exact (dne hx).mp
+
+end Exclusive
