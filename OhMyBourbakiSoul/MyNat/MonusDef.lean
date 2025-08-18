@@ -4,6 +4,7 @@ import OhMyBourbakiSoul.MyNat.OrderDef
 import OhMyBourbakiSoul.MyCompose.MyNatCompose
 
 open MyCompose
+open MyOrd
 
 namespace MyNat
 
@@ -92,14 +93,15 @@ theorem monus_eq_zero_iff {a n : MyNat} :
   apply Iff.intro
   · intro hanz
     match (cmp a n) with
-      | Cmp.lt hlt =>
+      | MyCmp.lt hlt =>
         rw [lt_def] at hlt
         exact And.left hlt
-      | Cmp.eq heq =>
+      | MyCmp.eq heq =>
         rw [heq]
         exact le_refl
-      | Cmp.gt hgt =>
+      | MyCmp.gt hgt =>
         exfalso
+        rw [gt_iff_lt] at hgt
         rw [lt_iff_succ_le] at hgt
         rcases hgt with ⟨b, hb⟩
         rw [succ_add_eq_add_succ] at hb

@@ -6,6 +6,7 @@ import OhMyBourbakiSoul.MyNat.OrderDef
 import OhMyBourbakiSoul.MyCompose.MyNatCompose
 
 open MyCompose
+open MyOrd
 
 namespace MyNat
 
@@ -19,11 +20,11 @@ def _divmod_inner (a b c: MyNat) : MyNat × MyNat := by
     | zero => exact (zero, a)
     | succ b' =>
       match (cmp a b) with
-        | Cmp.lt hlt =>
+        | MyCmp.lt hlt =>
           exact (zero, a)
-        | Cmp.eq heq =>
+        | MyCmp.eq heq =>
           exact (one, zero)
-        | Cmp.gt hgt =>
+        | MyCmp.gt hgt =>
           match c with
             | zero => exact (zero, a)
             | succ c' =>
@@ -60,28 +61,29 @@ theorem _divmod_inner_identity (a b c : MyNat) :
       · intro a'
         rw [<-hb, _divmod_inner, hb]
         match (cmp a' b) with
-          | Cmp.lt hlt | Cmp.gt hgt =>
+          | MyCmp.lt hlt | MyCmp.gt hgt =>
             change _divmod_identity a' b (zero, a')
             apply _divmod_inner_identity_zero_a
-          | Cmp.eq heq =>
+          | MyCmp.eq heq =>
             change _divmod_identity a' b (one, zero)
             apply _divmod_inner_identity_one_zero heq
       · intro c hp a'
         rw [<-hb, _divmod_inner, hb]
         match (cmp a' b) with
-          | Cmp.lt hlt =>
+          | MyCmp.lt hlt =>
             change _divmod_identity a' b (zero, a')
             apply _divmod_inner_identity_zero_a
-          | Cmp.eq heq =>
+          | MyCmp.eq heq =>
             change _divmod_identity a' b (one, zero)
             apply _divmod_inner_identity_one_zero heq
-          | Cmp.gt hgt =>
+          | MyCmp.gt hgt =>
             generalize hqr : _divmod_inner (a' ⊖ b) b c = qr
             change _divmod_identity a' b (qr.fst + one, qr.snd)
             have hqr' := hp (a' ⊖ b)
             rw [hqr] at hqr'
             change a' ⊖ b = b * qr.fst + qr.snd at hqr'
             change a' = b * (qr.fst + one) + qr.snd
+            rw [gt_iff_lt] at hgt
             rw [lt_def] at hgt
             have hmn := monus_cancel_safe (And.left hgt)
             rw [<-hmn]
@@ -171,14 +173,14 @@ theorem _mod_inner_succ {a b c : MyNat} :
       · intro c' hp a' ha'
         rw [<-hb, _divmod_inner, hb]
         match (cmp a' b) with
-          | Cmp.lt hlt =>
+          | MyCmp.lt hlt =>
             change a' < b
             exact hlt
-          | Cmp.eq heq =>
+          | MyCmp.eq heq =>
             change zero < b
             rw [<-hb]
             apply zero_lt_succ
-          | Cmp.gt hgt =>
+          | MyCmp.gt hgt =>
             generalize hqr : _divmod_inner (a' ⊖ b) b c' = qr
             change qr.snd < b
             have h : b + (a' ⊖ b) = a' :=
@@ -247,15 +249,15 @@ theorem divmod_unique_solution {a b q₁ r₁ q₂ r₂ : MyNat}
       generalize hb' : (succ b') = b
       rw [hb'] at hab₁ hab₂ hrb₁ hrb₂
       match (cmp q₁ q₂) with
-        | Cmp.lt (hlt: q₁ < q₂) =>
+        | MyCmp.lt (hlt: q₁ < q₂) =>
           exfalso
           apply _divmod_unique_solution_derive_contradiction
             hab₁ hab₂ hrb₁ hlt
-        | Cmp.gt (hgt: q₂ < q₁) =>
+        | MyCmp.gt (hgt: q₂ < q₁) =>
           exfalso
           apply _divmod_unique_solution_derive_contradiction
             hab₂ hab₁ hrb₂ hgt
-        | Cmp.eq (heq: q₁ = q₂) =>
+        | MyCmp.eq (heq: q₁ = q₂) =>
           rw [hab₁] at hab₂
           rw [heq] at hab₂
           rw [add_cancel_left] at hab₂
@@ -286,12 +288,12 @@ theorem divmod_succ {a b q r : MyNat} :
     apply And.intro
     · -- prove q = q' then.
       match (cmp q q') with
-      | Cmp.lt hlt =>
+      | MyCmp.lt hlt =>
         exfalso
         apply _divmod_unique_solution_derive_contradiction
           hab hab' hrb hlt
-      | Cmp.eq heq => rw [heq]
-      | Cmp.gt hgt =>
+      | MyCmp.eq heq => rw [heq]
+      | MyCmp.gt hgt =>
         exfalso
         apply _divmod_unique_solution_derive_contradiction
           hab' hab hr'b hgt

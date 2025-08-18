@@ -1,5 +1,10 @@
 import OhMyBourbakiSoul.MyNat.Basic
 import OhMyBourbakiSoul.MyNat.AddDef
+import OhMyBourbakiSoul.MyBasic.MyOrd.Basic
+import OhMyBourbakiSoul.MyBasic.MyOrd.Induced
+import OhMyBourbakiSoul.MyBasic.MyOrd.Cmp
+
+open MyOrd
 
 namespace MyNat
 
@@ -53,7 +58,10 @@ theorem le_antisymm {a b : MyNat} :
   rw [add_zero] at hd
   exact hd
 
--- TODO: instPartialOrder
+instance instPartialOrder : MyPartialOrd MyNat where
+  le_refl := le_refl
+  le_trans := le_trans
+  le_antisymm := le_antisymm
 
 theorem le_add_cancel {a b c : MyNat} :
   (a + c ≤ b + c) ↔ (a ≤ b) := by
@@ -107,15 +115,10 @@ theorem le_combine {a b c d: MyNat} :
   rw [add_comm (a := f) (b := c)]
   rw [he]
 
-def lt (a b : MyNat) :=
-  (a ≤ b) ∧ (a ≠ b)
+instance instanceInduceLT : MyInduceStrict MyNat where
 
-instance instLT : LT MyNat where
-  lt := lt
-
-@[simp] theorem lt_def {a b : MyNat} :
-  (a < b) ↔ (a ≤ b) ∧ (a ≠ b) := by
-  rfl
+theorem lt_def {a b : MyNat} :
+  (a < b) ↔ (a ≤ b) ∧ (a ≠ b) := MyCompatOrd.compat
 
 theorem zero_lt_succ {a : MyNat} : zero < succ a := by
   rw [lt_def]
@@ -140,38 +143,6 @@ theorem zero_lt_iff_ne_zero {a : MyNat} :
     rcases h with ⟨a', ha'⟩
     rw [ha']
     apply zero_lt_succ
-
-theorem lt_succ {a : MyNat} : (a < succ a) := by
-  rw [lt_def]
-  apply And.intro
-  · apply le_succ
-  · apply ne_succ
-
-theorem lt_irrefl {a : MyNat} : ¬(a < a) := by
-  rw [lt_def]
-  intro h
-  apply And.right h
-  rfl
-
-theorem lt_trans {a b c : MyNat} :
-  (a < b) → (b < c) → (a < c) := by
-  intro hab hbc
-  rw [lt_def] at hab
-  rcases hab with ⟨haleb, haneb⟩
-  rw [lt_def] at hbc
-  rcases hbc with ⟨hblec, hbnec⟩
-  rw [lt_def]
-  apply And.intro
-  · apply le_trans haleb hblec
-  · intro haeqc
-    rw [le_def] at haleb
-    rcases haleb with ⟨d, hd⟩
-    rw [haeqc] at hd
-    have hcleb : c ≤ b := by
-      rw [le_def]
-      exists d
-    have : b = c := le_antisymm hblec hcleb
-    contradiction
 
 theorem lt_iff_succ_le {a b : MyNat} :
   (a < b) ↔ (succ a ≤ b) := by
@@ -250,58 +221,48 @@ theorem lt_combine {a b c d : MyNat} :
   intro hcd
   apply le_combine_lt hab' hcd
 
-inductive Cmp (a b : MyNat) where
-  | lt (hlt : a < b)
-  | eq (heq : a = b)
-  | gt (hgt : b < a)
-
-def cmp (a b : MyNat) : Cmp a b := by
+def cmp (a b : MyNat) : MyCmp a b := by
   match a with
     | zero =>
       match b with
         | zero =>
-          exact Cmp.eq (Eq.refl zero)
+          exact MyCmp.eq (Eq.refl zero)
         | succ b' =>
-          exact Cmp.lt (zero_lt_succ (a := b'))
+          exact MyCmp.lt (zero_lt_succ (a := b'))
     | succ a' =>
       match b with
         | zero =>
-          exact Cmp.gt (zero_lt_succ (a := a'))
+          exact MyCmp.gt (zero_lt_succ (a := a'))
         | succ b' =>
           match (cmp a' b') with
-            | Cmp.lt (hlt : a' < b') =>
+            | MyCmp.lt (hlt : a' < b') =>
               rw [<-lt_succ_cancel] at hlt
-              exact Cmp.lt hlt
-            | Cmp.eq (heq : a' = b') =>
+              exact MyCmp.lt hlt
+            | MyCmp.eq (heq : a' = b') =>
               rw [<-succ_inj] at heq
-              exact Cmp.eq heq
-            | Cmp.gt (hgt : b' < a') =>
+              exact MyCmp.eq heq
+            | MyCmp.gt (hgt : b' < a') =>
               rw [<-lt_succ_cancel] at hgt
-              exact Cmp.gt hgt
+              exact MyCmp.gt hgt
 
-theorem lt_threeway {a b : MyNat} :
-  (a < b) ∨ (a = b) ∨ (a > b) := by
-  match (cmp a b) with
-    | Cmp.lt hlt =>
-      exact Or.inl hlt
-    | Cmp.eq heq =>
-      exact Or.inr (Or.inl heq)
-    | Cmp.gt hgt =>
-      exact Or.inr (Or.inr hgt)
+instance instComparableOrd : MyComparableOrd MyNat where
+  cmp := cmp
 
 theorem le_total {a b : MyNat} :
   (a ≤ b) ∨ (b ≤ a) := by
   match (cmp a b) with
-    | Cmp.lt hlt =>
+    | MyCmp.lt hlt =>
       rw [lt_def] at hlt
       exact Or.inl (And.left hlt)
-    | Cmp.eq heq =>
+    | MyCmp.eq heq =>
       rw [heq]
       exact Or.inl le_refl
-    | Cmp.gt hgt =>
+    | MyCmp.gt hgt =>
+      rw [gt_iff_lt] at hgt
       rw [lt_def] at hgt
       exact Or.inr (And.left hgt)
 
+-- TODO: totality arguments?!
 theorem le_iff_not_gt {a b : MyNat} :
   (a ≤ b) ↔ ¬(b < a) := by
   apply Iff.intro
@@ -315,13 +276,13 @@ theorem le_iff_not_gt {a b : MyNat} :
     contradiction
   · intro hnba
     match (cmp a b) with
-      | Cmp.lt (hlt : a < b) =>
+      | MyCmp.lt (hlt : a < b) =>
         rw [lt_def] at hlt
         exact And.left hlt
-      | Cmp.eq (heq : a = b) =>
+      | MyCmp.eq (heq : a = b) =>
         rw [heq]
         exact le_refl
-      | Cmp.gt (hgt : a > b) =>
+      | MyCmp.gt (hgt : a > b) =>
         exfalso
         exact hnba hgt
 
@@ -330,11 +291,11 @@ theorem le_iff_lt_or_eq {a b : MyNat} :
   apply Iff.intro
   · intro hab
     match (cmp a b) with
-      | Cmp.lt hlt =>
+      | MyCmp.lt hlt =>
         exact Or.inl hlt
-      | Cmp.eq heq =>
+      | MyCmp.eq heq =>
         exact Or.inr heq
-      | Cmp.gt hgt =>
+      | MyCmp.gt hgt =>
         exfalso
         rw [le_iff_not_gt] at hab
         contradiction

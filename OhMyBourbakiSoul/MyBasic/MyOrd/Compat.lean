@@ -1,7 +1,10 @@
 import OhMyBourbakiSoul.MyBasic.MyOrd.Basic
+import OhMyBourbakiSoul.MyBasic.MyLogic.Propositional
 
 universe u
 variable {α : Type u}
+
+open MyLogic
 
 namespace MyOrd
 
@@ -65,12 +68,8 @@ theorem not_ge_if_lt
 
 theorem not_gt_if_le
   {a b : α} : (a ≤ b) → ¬(a > b) := by
-  intro hle hgt
-  change b < a at hgt
-  rw [O.compat] at hgt
-  have : b ≠ a := And.right hgt
-  have : b = a := M.le_antisymm (And.left hgt) hle
-  contradiction
+  apply modus_tollens_neg
+  exact not_ge_if_lt
 
 end MyCompatOrd
 
