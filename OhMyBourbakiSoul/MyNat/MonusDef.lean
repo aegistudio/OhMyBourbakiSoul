@@ -52,6 +52,10 @@ theorem monus_cancel {a b : MyNat} : (a + b) ⊖ a = b := by
 theorem monus_cancel_self {a : MyNat} : a ⊖ a = zero := by
   apply monus_cancel (b := zero)
 
+theorem monus_zero {n : MyNat} : n ⊖ zero = n := by
+  rw (occs := [1]) [<-zero_add (a := n)]
+  apply monus_cancel
+
 theorem zero_monus {n : MyNat} : zero ⊖ n = zero := by
   rw [monus_def]
   revert n

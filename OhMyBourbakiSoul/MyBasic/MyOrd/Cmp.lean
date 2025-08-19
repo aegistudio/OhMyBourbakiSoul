@@ -60,6 +60,57 @@ instance instDecidableLE
   [MyPartialOrd α] [MyCompatOrd α] : DecidableLE α :=
   decide_le_with_comparable_ord_if_compat
 
+section
+
+variable [MyPartialOrd α]
+variable [MyCompatOrd α]
+
+theorem lt_if_not_ge
+  {a b : α} : ¬(a ≥ b) → (a < b) := by
+  intro h
+  match (cmp a b) with
+    | MyCmp.lt (hlt : a < b) =>
+      exact hlt
+    | MyCmp.eq (heq : a = b) =>
+      exfalso
+      symm at heq
+      have h' := le_if_eq heq
+      contradiction
+    | MyCmp.gt (hgt : a > b) =>
+      exfalso
+      rw [gt_iff_lt] at hgt
+      rw [MyCompatOrd.compat] at hgt
+      have h' := And.left hgt
+      contradiction
+
+theorem not_ge_iff_lt
+  {a b : α} : ¬(a ≥ b) ↔ (a < b) := by
+  apply Iff.intro
+  · exact lt_if_not_ge
+  · exact MyCompatOrd.not_ge_if_lt
+
+theorem le_if_not_gt
+  {a b : α} : ¬(a > b) → (a ≤ b) := by
+  intro h
+  match (cmp a b) with
+    | MyCmp.lt (hlt : a < b) =>
+      rw [MyCompatOrd.compat] at hlt
+      exact And.left hlt
+    | MyCmp.eq (heq : a = b) =>
+      exact le_if_eq heq
+    | MyCmp.gt (hgt : a > b) =>
+      exfalso
+      contradiction
+
+theorem not_gt_iff_le
+  {a b : α} : ¬(a > b) ↔ (a ≤ b) := by
+  apply Iff.intro
+  · exact le_if_not_gt
+  · exact MyCompatOrd.not_gt_if_le
+
+end
+
 end MyComparableOrd
+
 
 end MyOrd
