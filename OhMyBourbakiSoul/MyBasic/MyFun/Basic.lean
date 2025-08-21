@@ -1,3 +1,4 @@
+import OhMyBourbakiSoul.MyBasic.MapsTo
 import OhMyBourbakiSoul.MyBasic.MySet.Basic
 import OhMyBourbakiSoul.MyBasic.MySet.Subset
 import OhMyBourbakiSoul.MyBasic.MySet.Subtype
@@ -9,42 +10,64 @@ universe u v w
 variable {α : Type u} {β : Type v} {γ : Type w}
 variable {X : MySet α} {Y : MySet β} {Z : MySet γ}
 
-class MyFun (X : MySet α) (Y : MySet β) where
-  fn: Subtype X → Subtype Y
+structure MyFun (X : MySet α) (Y : MySet β) where
+  fn: X.type → Y.type
+
+@[reducible]
+def myfun (X : MySet α) (Y : MySet β) := MyFun X Y
+
+infix:0 " -→ " => myfun
 
 namespace MyFun
 
-def coe_fn (f : MyFun X Y) (x : Subtype X) : Subtype Y := f.fn x
+def coe_fn (f : X -→ Y) (x : X.type) : Y.type := f.fn x
 
-instance instCoeFn : CoeFun (MyFun X Y)
-  (fun _ => Subtype X → Subtype Y) where
+instance instCoeFn : CoeFun (X -→ Y)
+  (_ ↦ X.type → Y.type) where
   coe := coe_fn
 
-def domain (_ : MyFun X Y) : MySet α := X
+def coe_myfun (f : X.type → Y.type) : X -→ Y := MyFun.mk f
 
-theorem domain_def {f : MyFun X Y} :
+instance instCoeMyFun : Coe (X.type → Y.type) (X -→ Y) where
+  coe := coe_myfun
+
+theorem image_eq_if {x₁ x₂ : X.type} {f : X -→ Y} :
+  (x₁.val = x₂.val) → (f x₁ = f x₂) := by
+  intro heq
+  rw [<-Subtype.eq_iff] at heq
+  rw [heq]
+
+theorem image_val_eq_if {x₁ x₂ : X.type} {f : X -→ Y} :
+  (x₁.val = x₂.val) → ((f x₁).val = (f x₂).val) := by
+  intro h
+  rw [<-Subtype.eq_iff]
+  exact image_eq_if h
+
+def domain (_ : X -→ Y) : MySet α := X
+
+theorem domain_def {f : X -→ Y} :
   X = f.domain := by rfl
 
-def codomain (_ : MyFun X Y) : MySet β := Y
+def codomain (_ : X -→ Y) : MySet β := Y
 
-theorem codomain_def {f : MyFun X Y} :
+theorem codomain_def {f : X -→ Y} :
   Y = f.codomain := by rfl
 
-def range (f : MyFun X Y) : MySet β :=
-  λ y : β => ∃ x : Subtype X, y = f x
+def range (f : X -→ Y) : MySet β :=
+  { y : β | ∃ x, y = (f x).val }
 
-theorem range_def {f : MyFun X Y} :
-  ∀ x : Subtype X, (f x).val ∈ f.range := by
+theorem range_def {f : X -→ Y} :
+  ∀ x : X.type, (f x).val ∈ f.range := by
   intro x
   unfold range
   rw [mem_def]
   exists x
 
-theorem range_mem {f : MyFun X Y} {y : β}:
-  (y ∈ f.range) ↔ (∃ x : Subtype X, y = (f x).val) := by
+theorem range_mem {f : X -→ Y} {y : β}:
+  (y ∈ f.range) ↔ (∃ x : X.type, y = (f x).val) := by
   rfl
 
-theorem range_subsets_codomain {f : MyFun X Y} :
+theorem range_subsets_codomain {f : X -→ Y} :
   (f.range ⊆ f.codomain) := by
   rw [subset_def]
   intro y hy
@@ -58,18 +81,18 @@ theorem range_subsets_codomain {f : MyFun X Y} :
   exact hyY
 
 def restrict
-  (f : MyFun X Y) (X' : MySet α) (h : X' ⊆ X) : MyFun X' Y :=
-  MyFun.mk λ (x' : Subtype X') => f (lift_subtype h x')
+  (f : X -→ Y) (X' : MySet α) (h : X' ⊆ X) : X' -→ Y :=
+  x' ↦ f (lift_subtype h x')
 
 theorem restrict_compat
-  {f : MyFun X Y} {X' : MySet α} {h : X' ⊆ X} :
-  ∀ x : Subtype X',
+  {f : X -→ Y} {X' : MySet α} {h : X' ⊆ X} :
+  ∀ x : X'.type,
   f (lift_subtype h x) = (f.restrict X' h) x := by
   intro x
   change (f (lift_subtype h x)) = (f (lift_subtype h x))
   rfl
 
-def trim (f : MyFun X Y) : MyFun f.domain f.range := by
+def trim (f : X -→ Y) : f.domain -→ f.range := by
   apply MyFun.mk
   intro x
   generalize hy : f x = y
@@ -77,40 +100,39 @@ def trim (f : MyFun X Y) : MyFun f.domain f.range := by
   rw [hy] at hyr
   exact Subtype.mk y.val hyr
 
-theorem trim_compat {f : MyFun X Y} :
-  ∀ x : Subtype X, (f.trim x).val = (f x).val := by
+theorem trim_compat {f : X -→ Y} :
+  ∀ x : X.type, (f.trim x).val = (f x).val := by
   intro x
   rfl
 
 def expand
-  (f : MyFun X Y) (Y' : MySet β) (h : Y ⊆ Y') : MyFun X Y' :=
-  MyFun.mk λ (x : Subtype X) => lift_subtype h (f x)
+  (f : X -→ Y) (Y' : MySet β) (h : Y ⊆ Y') : X -→ Y' :=
+  x ↦ lift_subtype h (f x)
 
 theorem expand_compat
-  {f : MyFun X Y} {Y' : MySet β} {h : Y ⊆ Y'} :
-  ∀ x : Subtype X,
+  {f : X -→ Y} {Y' : MySet β} {h : Y ⊆ Y'} :
+  ∀ x : X.type,
   lift_subtype h (f x) = (f.expand Y' h) x := by
   intro x
   change lift_subtype h (f x) = lift_subtype h (f x)
   rfl
 
 def compose
-  (g : MyFun Y Z) (f : MyFun X Y) : MyFun X Z :=
-  MyFun.mk (g ∘ f)
+  (g : Y -→ Z) (f : X -→ Y) : X -→ Z := (g ∘ f)
 
 end MyFun
 
-class MyInj (f : MyFun X Y) where
-  inj: ∀ x : Subtype X, ∀ x' : Subtype X,
+class MyInj (f : X -→ Y) where
+  inj: ∀ x : X.type, ∀ x' : X.type,
       (f x = f x') → (x = x')
 
 namespace MyInj
 
 open MyFun
 
-theorem uniq_preimage {f : MyFun X Y} [If : MyInj f] :
-  ∀ y : Subtype f.range, ∃! x : Subtype X,
-  f x = y.val := by
+theorem uniq_preimage {f : X -→ Y} [If : MyInj f] :
+  ∀ y : f.range.type, ∃! x : X.type,
+  (f x).val = y.val := by
   intro y
   have hy := y.property
   rw [<-mem_def (s := f.range)] at hy
@@ -127,9 +149,29 @@ theorem uniq_preimage {f : MyFun X Y} [If : MyInj f] :
     symm at hx'
     exact hx'
 
+theorem mk_uniq_preimage {f : X -→ Y} :
+  (∀ y : f.range.type, ∃! x : X.type, (f x).val = y.val) →
+  MyInj f := by
+  intro h
+  apply MyInj.mk
+  intro x x' hx
+  have (eq := hy) y := f x
+  have hy' : y.val ∈ f.range := by
+    rw [range_mem]
+    exists x
+    rw [hy]
+  have (eq := hy') y' := typed y.val hy'
+  have h' := h y'
+  apply h'.unique_if <;>
+  · rw [hy', typed_eta]
+    rw [<-Subtype.eq_iff]
+    repeat rw [<-hx]
+    symm
+    exact hy
+
 theorem compose_inj
-  (g : MyFun Y Z) [Ig : MyInj g]
-  (f : MyFun X Y) [If : MyInj f] :
+  (g : Y -→ Z) [Ig : MyInj g]
+  (f : X -→ Y) [If : MyInj f] :
   MyInj (compose g f) := by
   apply MyInj.mk
   intro x x' h
@@ -139,27 +181,27 @@ theorem compose_inj
   exact If.inj x x' h'
 
 instance instCompInj
-  {g : MyFun Y Z} [Ig : MyInj g]
-  {f : MyFun X Y} [If : MyInj f] :
+  {g : Y -→ Z} [Ig : MyInj g]
+  {f : X -→ Y} [If : MyInj f] :
   MyInj (compose g f) := compose_inj g f
 
 def inverse_fn
-  {f : MyFun X Y} [If : MyInj f]
-  [uc : UCPred λ y => (If.uniq_preimage y).prop] :
-  Subtype f.range → Subtype f.domain := by
+  {f : X -→ Y} [If : MyInj f]
+  [uc : UCPred (y ↦ (If.uniq_preimage y).prop)] :
+  f.range.type → f.domain.type := by
   intro y
   have hy := If.uniq_preimage y
   have x := (uc.uniq_choose_pred y).uniq_choose hy
   exact x.val
 
 def inverse
-  {f : MyFun X Y} [If : MyInj f]
-  [uc : UCPred λ y => (If.uniq_preimage y).prop] :
-  MyFun f.range f.domain := MyFun.mk inverse_fn
+  {f : X -→ Y} [If : MyInj f]
+  [uc : UCPred (y ↦ (If.uniq_preimage y).prop)] :
+  f.range -→ f.domain := MyFun.mk inverse_fn
 
 theorem inverse_def
-  {f : MyFun X Y} [If : MyInj f]
-  [uc : UCPred λ y => (If.uniq_preimage y).prop] :
+  {f : X -→ Y} [If : MyInj f]
+  [uc : UCPred (y ↦ (If.uniq_preimage y).prop)] :
   If.inverse ∘ f.trim = id := by
   funext x
   change If.inverse (f.trim x) = x
@@ -177,8 +219,8 @@ theorem inverse_def
   exact trim_compat x
 
 theorem inverse_inj
-  {f : MyFun X Y} [If : MyInj f]
-  [uc : UCPred λ y => (If.uniq_preimage y).prop] :
+  {f : X -→ Y} [If : MyInj f]
+  [uc : UCPred (y ↦ (If.uniq_preimage y).prop)] :
   MyInj (If.inverse) := by
   apply MyInj.mk
   intro y y' hxx'
@@ -196,20 +238,70 @@ theorem inverse_inj
   rw [hx, hx', hxx']
 
 instance instInverseInj
-  {f : MyFun X Y} [If : MyInj f]
+  {f : X -→ Y} [If : MyInj f]
   [uc : UCPred λ y => (If.uniq_preimage y).prop] :
   MyInj (If.inverse) := inverse_inj
 
+theorem trim_inj
+  {f : X -→ Y} [If : MyInj f] :
+  MyInj (f.trim) := by
+  apply MyInj.mk
+  intro x x' hxx'
+  rw [Subtype.eq_iff] at hxx'
+  repeat rw [trim_compat] at hxx'
+  rw [<-Subtype.eq_iff] at hxx'
+  exact If.inj x x' hxx'
+
+instance instTrimInj
+  {f : X -→ Y} [If : MyInj f] :
+  MyInj (f.trim) := trim_inj
+
+theorem restrict_inj
+  {f : X -→ Y}  [If : MyInj f]
+  {X' : MySet α} {h : X' ⊆ X} :
+  MyInj (f.restrict X' h) := by
+  apply MyInj.mk
+  intro x x' hxx'
+  repeat rw [<-restrict_compat] at hxx'
+  have h' := If.inj _ _ hxx'
+  rw [Subtype.eq_iff] at h'
+  repeat rw [lift_subtype_def] at h'
+  rw [Subtype.eq_iff]
+  exact h'
+
+instance instRestrictInj
+  {f : X -→ Y} [If : MyInj f]
+  {X' : MySet α} {h : X' ⊆ X} :
+  MyInj (f.restrict X' h) := restrict_inj
+
+theorem expand_inj
+  {f : X -→ Y} [If : MyInj f]
+  {Y' : MySet β} {h : Y ⊆ Y'} :
+  MyInj (f.expand Y' h) := by
+  apply MyInj.mk
+  intro x x' hxx'
+  repeat rw [<-expand_compat] at hxx'
+  rw [Subtype.eq_iff] at hxx'
+  repeat rw [lift_subtype_def] at hxx'
+  rw [<-Subtype.eq_iff] at hxx'
+  exact If.inj x x' hxx'
+
+instance instExpandInj
+  {f : X -→ Y} [If : MyInj f]
+  {Y' : MySet β} {h : Y ⊆ Y'} :
+  MyInj (f.expand Y' h) := expand_inj
+
+
 end MyInj
 
-class MySurj (f : MyFun X Y) where
-  surj: ∀ (y : Subtype Y), (∃ x : Subtype X, f x = y)
+class MySurj (f : X -→ Y) where
+  surj: ∀ (y : Y.type), (∃ x : X.type, f x = y)
 
 namespace MySurj
 
 open MyFun
 
-theorem range_is_codomain (f : MyFun X Y) [S: MySurj f] :
+theorem range_is_codomain (f : X -→ Y) [S: MySurj f] :
   f.range = f.codomain := by
   apply subset_antisymm
   · exact range_subsets_codomain
@@ -227,9 +319,9 @@ theorem range_is_codomain (f : MyFun X Y) [S: MySurj f] :
     symm
     exact hx'
 
-def compose_surj
-  (g : MyFun Y Z) [Sg : MySurj g]
-  (f : MyFun X Y) [Sf : MySurj f] :
+theorem compose_surj
+  (g : Y -→ Z) [Sg : MySurj g]
+  (f : X -→ Y) [Sf : MySurj f] :
   MySurj (compose g f) := by
   apply MySurj.mk
   intro z
@@ -241,10 +333,27 @@ def compose_surj
   rw [hx, hy]
 
 instance instCompSurj
-  {g : MyFun Y Z} [Sg : MySurj g]
-  {f : MyFun X Y} [Sf : MySurj f] :
+  {g : Y -→ Z} [Sg : MySurj g]
+  {f : X -→ Y} [Sf : MySurj f] :
   MySurj (compose g f) := compose_surj g f
+
+theorem trim_surj
+  {f : X -→ Y} : MySurj (f.trim) := by
+  apply MySurj.mk
+  intro y
+  have hy := y.property
+  rw [<-mem_def] at hy
+  rw [range_mem] at hy
+  rcases hy with ⟨x, hx⟩
+  exists x
+  rw [Subtype.eq_iff]
+  rw [trim_compat x]
+  symm at hx
+  exact hx
+
+instance instTrimSurj
+  {f : X -→ Y} : MySurj (f.trim) := trim_surj
 
 end MySurj
 
-class MyBij (f : MyFun X Y) extends MyInj f, MySurj f
+class MyBij (f : X -→ Y) extends MyInj f, MySurj f

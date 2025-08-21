@@ -16,9 +16,9 @@ open MyLogic
 -- If x' ∉ f(x'), then x' ∈ f(x') by definition.
 -- And x' ∈ f(x') ↔ x' ∉ f(x') leads to paradox.
 theorem no_surjection_powerset :
-  ∀ f : MyFun X (𝒫 X), ¬(MySurj f) := by
+  ∀ f : X -→ 𝒫 X, ¬(MySurj f) := by
   intro f Sf
-  generalize hs : unlift_subtype (λ x => x.val ∉ (f x).val) = s
+  generalize hs : unlift_subtype { x ∈ X | x.val ∉ (f x).val } = s
   have hs'X : s ⊆ X := by
     rw [<-hs]
     apply unlift_subset
@@ -32,7 +32,7 @@ theorem no_surjection_powerset :
     intro hxs
     rw [<-hs] at hxs
     unfold unlift_subtype at hxs
-    change ∃ (x' : Subtype X),
+    change ∃ (x' : X.type),
       (x.val = x'.val) ∧
       (¬x'.val ∈ (f.coe_fn x').val) at hxs
     rcases hxs with ⟨x', hx'⟩
@@ -53,7 +53,7 @@ theorem no_surjection_powerset :
     unfold unlift_subtype at hs
     rw [mem_def]
     rw [<-hs]
-    change ∃ (x' : Subtype X),
+    change ∃ (x' : X.type),
       (x.val = x'.val) ∧
       (¬x'.val ∈ (f.coe_fn x').val)
     exists x
@@ -66,6 +66,6 @@ theorem no_surjection_powerset :
   exact contra_with_iff_not h
 
 theorem no_bijection_powerset :
-  ∀ f : MyFun X (𝒫 X), ¬(MyBij f) := by
+  ∀ f : X -→ 𝒫 X, ¬(MyBij f) := by
   intro f Bf
   exact no_surjection_powerset f Bf.toMySurj

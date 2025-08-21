@@ -6,8 +6,7 @@ variable {α : Type u}
 
 namespace MySet
 
-def singleton (e : α) : MySet α :=
-  (λ a => a = e)
+def singleton (e : α) : MySet α := { a | a = e }
 
 instance instSingleton : Singleton α (MySet α) where
   singleton := singleton
@@ -20,7 +19,7 @@ theorem mem_singleton_iff {a e : α} :
   rfl
 
 def insert (e : α) (s : MySet α) : MySet α :=
-  (λ a => (a = e) ∨ (s a))
+  { a | (a = e) ∨ (a ∈ s) }
 
 instance instInsert : Insert α (MySet α) where
   insert := insert
@@ -31,6 +30,7 @@ theorem lawful_singleton_set :
   change insert a ∅ = singleton a
   unfold insert
   unfold singleton
+  rw [eq_def]
   funext x
   change (x = a ∨ False) = (x = a)
   apply Eq.propIntro
@@ -68,7 +68,7 @@ theorem singleton_if_paired_identity {a : α} :
     exact Or.inl h
 
 theorem singleton_iff_exists_uniq {s : MySet α} :
-  (ExistsUniq s) ↔ (∃ (e : α), s = {e}) := by
+  (ExistsUniq s.pred) ↔ (∃ (e : α), s = {e}) := by
   apply Iff.intro
   · intro h
     rcases h with ⟨e, he⟩

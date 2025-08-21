@@ -173,6 +173,11 @@ theorem lt_iff_succ_le {a b : MyNat} :
       have : a ≠ succ a := ne_succ
       contradiction
 
+theorem lt_succ {a : MyNat} : a < a.succ := by
+  rw [lt_iff_succ_le]
+  rw [le_succ_cancel]
+  exact le_refl
+
 theorem lt_add_cancel {a b c : MyNat} :
   (a + c < b + c) ↔ (a < b) := by
   rw [lt_iff_succ_le]

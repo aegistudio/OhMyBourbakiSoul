@@ -108,6 +108,27 @@ theorem not_gt_iff_le
   · exact le_if_not_gt
   · exact MyCompatOrd.not_gt_if_le
 
+theorem le_iff_lt_or_eq
+  {a b : α} : (a ≤ b) ↔ (a < b) ∨ (a = b) := by
+  apply Iff.intro
+  · intro hle
+    rw [MyCompatOrd.compat]
+    have d : Decidable (a = b) := inferInstance
+    match d with
+      | Decidable.isTrue h =>
+        exact Or.inr h
+      | Decidable.isFalse h =>
+        apply Or.inl
+        exact And.intro hle h
+  · intro hlteq
+    apply Or.elim hlteq
+    · intro hlt
+      rw [MyCompatOrd.compat] at hlt
+      exact And.left hlt
+    · intro heq
+      rw [heq]
+      exact MyPartialOrd.le_refl
+
 end
 
 end MyComparableOrd
