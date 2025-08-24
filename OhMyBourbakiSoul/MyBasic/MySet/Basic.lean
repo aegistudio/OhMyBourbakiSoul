@@ -6,22 +6,42 @@ variable {α : Type u}
 -- the proposition (p a) about a. If it is
 -- true then there's a proof of (p a), and
 -- false otherwise.
-def MySet (α : Type u) := α → Prop
+structure MySet (α : Type u) where
+  pred : α → Prop
+
+-- { x | term }
+-- { x : type | term }
+syntax "{ " withoutPosition(ident " | " term) " }" : term
+syntax "{ " withoutPosition(ident " : " term " | " term) " }" : term
+-- Grammar { x ∈ s | term } is defined in Subtype.lean
+
+macro_rules
+  | `({ $x | $p }) => ``(MySet.mk (fun $x => $p))
+  | `({ $x : $t | $p }) => ``(MySet.mk (fun ($x : $t) => $p))
 
 namespace MySet
 
-def mem (s : MySet α) (a : α) : Prop := s a
+def coe_pred (s : MySet α) : α → Prop := s.pred
+
+instance instCoePred : Coe (MySet α) (α → Prop) where
+  coe := coe_pred
+
+def mem (s : MySet α) (a : α) : Prop := s.pred a
 
 instance instMembership : Membership α (MySet α) where
   mem := mem
 
-theorem mem_def {a : α} {s : MySet α} : (a ∈ s) ↔ (s a) :=
-  by rfl
+theorem mem_def {a : α} {s : MySet α} :
+  (a ∈ s) ↔ (s.pred a) := by
+  change mem s a ↔ s.pred a
+  rfl
 
 instance instDecidableMem {a : α} {s : MySet α}
-  [I : Decidable (s a)]: Decidable (a ∈ s) := by
+  [I : Decidable (s.pred a)]: Decidable (a ∈ s) := by
   rw [mem_def]
   exact I
+
+abbrev decidable (s : MySet α) := DecidablePred s.pred
 
 theorem mem_iff {a : α} {s : MySet α} : (a ∈ s) ↔ (∃ b ∈ s, a = b) := by
   apply Iff.intro
@@ -33,6 +53,12 @@ theorem mem_iff {a : α} {s : MySet α} : (a ∈ s) ↔ (∃ b ∈ s, a = b) := 
     rw [heq]
     exact hbs
 
+theorem eq_def {s₁ s₂ : MySet α} :
+  (s₁ = s₂) ↔ (s₁.pred = s₂.pred) := by
+  cases s₁
+  cases s₂
+  simp
+
 -- The axiom of extensionality, now follows
 -- the functional extensionality, we will see.
 theorem eq_iff {s₁ s₂ : MySet α} :
@@ -43,15 +69,16 @@ theorem eq_iff {s₁ s₂ : MySet α} :
   · intro h
     -- Since a set is fundamentally a function, we
     -- would like to show the equality of function.
+    rw [eq_def]
     funext a
     have h' := h a
-    rw [<-mem_def (s := s₁)]
-    rw [<-mem_def (s := s₂)]
+    repeat rw [<-mem_def]
     rw [h']
 
 -- Every type has a corresponding universal set
 -- for it, such that ∀ (a : α), a ∈ (univ α)
 def univ (α : Type u) : MySet α := by
+  apply MySet.mk
   intro a
   exact True
 
@@ -79,6 +106,7 @@ theorem univ_iff {U : MySet α} :
 -- Similarly, every type has a corresponding
 -- empty set, such that ∀ (a : α), a ∉ empty
 def empty {α : Type u} : MySet α := by
+  apply MySet.mk
   intro a
   exact False
 

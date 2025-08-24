@@ -5,3 +5,8 @@ import OhMyBourbakiSoul.MyNat.MulDef
 import OhMyBourbakiSoul.MyNat.MonusDef
 import OhMyBourbakiSoul.MyNat.PowDef
 import OhMyBourbakiSoul.MyNat.DivModDef
+
+import OhMyBourbakiSoul.MyNat.Mu
+import OhMyBourbakiSoul.MyNat.SegDef
+import OhMyBourbakiSoul.MyNat.WellOrd
+import OhMyBourbakiSoul.MyNat.Pigeonhole

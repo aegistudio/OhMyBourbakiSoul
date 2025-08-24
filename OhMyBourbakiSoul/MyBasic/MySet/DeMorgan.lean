@@ -1,4 +1,6 @@
 import OhMyBourbakiSoul.MyBasic.MySet.OpsDef
+import OhMyBourbakiSoul.MyBasic.MySet.Subtype
+import OhMyBourbakiSoul.MyBasic.MySet.Exclusive
 import OhMyBourbakiSoul.MyBasic.MyLogic.Quantifier
 
 universe u
@@ -61,7 +63,7 @@ theorem demorgan_inhabited_bigcup
 
 theorem demorgan_nonempty_bigcup
   {a : MySet α} {B : MySet (MySet α)}
-  (h : Nonempty (Subtype B)) :
+  (h : B.nonempty) :
   (a \ (⋃ B)) = (⋂ { a \ b || b ∈ B }) := by
   rcases h with ⟨b₀, hb₀⟩
   rw [<-mem_def (s := B)] at hb₀
@@ -136,7 +138,7 @@ theorem subset_double_complement
 -- for templates of such kind of arguments.
 theorem double_complement_eq_self_if_exclusive_mem
   {s : MySet α} :
-  (ExclusivePred s) → (s = (sᶜ)ᶜ) := by
+  (s.exclusive) → (s = (sᶜ)ᶜ) := by
   intro h
   rw [eq_iff]
   intro x
@@ -155,7 +157,7 @@ theorem double_complement_eq_self_if_exclusive_mem
 
 theorem complement_exclusive_mem_if_exclusive_mem
   {s : MySet α} :
-  (ExclusivePred s) → (ExclusivePred sᶜ) := by
+  (s.exclusive) → ((sᶜ).exclusive) := by
   intro h x
   apply Or.elim (h x)
   · intro hxs
@@ -172,8 +174,8 @@ theorem complement_exclusive_mem_if_exclusive_mem
 
 theorem bigcap_complement_exclusive_mem_if_bigcup_exclusive_mem
   {A : MySet (MySet α)} :
-  (ExclusivePred (⋃ A)) →
-  (ExclusivePred (⋂ { aᶜ || a ∈ A })) := by
+  ((⋃ A).exclusive) →
+  ((⋂ { aᶜ || a ∈ A }).exclusive) := by
   intro h
   rw [<-demorgan_univ_bigcup]
   apply complement_exclusive_mem_if_exclusive_mem

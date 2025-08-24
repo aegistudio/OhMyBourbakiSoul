@@ -46,6 +46,36 @@ theorem exclusive_if_decidable
     | isTrue (hp : p) => exact Or.inl hp
     | isFalse (hnp : ¬p) => exact Or.inr hnp
 
+-- Instance synthesizers.
+namespace Exclusive
+
+instance instExclusivePred
+  {p : α → Prop} [D : DecidablePred p] :
+  ExclusivePred p := by
+  intro a
+  apply exclusive_if_decidable
+
+instance instExclusiveEq α
+  [d : DecidableEq α] :
+  ExclusiveEq α := by
+  intro a b
+  apply exclusive_if_decidable
+
+instance instExclusiveLE α
+  [LE α] [d : DecidableLE α] :
+  ExclusiveLE α := by
+  intro a b
+  apply exclusive_if_decidable
+
+instance instExclusiveLT α
+  [LT α] [d : DecidableLT α] :
+  ExclusiveLT α := by
+  intro a b
+  apply exclusive_if_decidable
+
+end Exclusive
+
+-- Fundamental exclusive related theorems.
 namespace Exclusive
 
 variable {p q : Prop}
@@ -81,5 +111,49 @@ theorem by_contra (hx : Exclusive p) :
   (¬p → False) → p := by
   change (¬¬p) → p
   exact (dne hx).mp
+
+theorem not_intro
+  (hp : Exclusive p) : (Exclusive ¬p) := by
+  unfold Exclusive
+  rw [hp.dne]
+  rw [Or.comm]
+  exact hp
+
+theorem and_intro
+  (hpnp : Exclusive p) (hqnq : Exclusive q) :
+  (Exclusive (p ∧ q)) := by
+  apply Or.elim hpnp
+  · intro hp
+    apply Or.elim hqnq
+    · intro hq
+      apply Or.inl
+      exact And.intro hp hq
+    · intro hnq
+      apply Or.inr
+      intro hpq
+      have hq := And.right hpq
+      contradiction
+  · intro hnp
+    apply Or.inr
+    intro hpq
+    have hp := And.left hpq
+    contradiction
+
+theorem or_intro
+  (hpnp : Exclusive p) (hqnq : Exclusive q) :
+  (Exclusive (p ∨ q)) := by
+  apply Or.elim hpnp
+  · intro hp
+    apply Or.inl
+    exact Or.inl hp
+  · intro hnp
+    apply Or.elim hqnq
+    · intro hq
+      apply Or.inl
+      exact Or.inr hq
+    · intro hnq
+      apply Or.inr
+      intro hpq
+      apply Or.elim hpq <;> (intro h; contradiction)
 
 end Exclusive

@@ -4,6 +4,7 @@ import OhMyBourbakiSoul.MyNat.OrderDef
 import OhMyBourbakiSoul.MyCompose.MyNatCompose
 
 open MyCompose
+open MyOrd
 
 namespace MyNat
 
@@ -51,6 +52,10 @@ theorem monus_cancel {a b : MyNat} : (a + b) ⊖ a = b := by
 theorem monus_cancel_self {a : MyNat} : a ⊖ a = zero := by
   apply monus_cancel (b := zero)
 
+theorem monus_zero {n : MyNat} : n ⊖ zero = n := by
+  rw (occs := [1]) [<-zero_add (a := n)]
+  apply monus_cancel
+
 theorem zero_monus {n : MyNat} : zero ⊖ n = zero := by
   rw [monus_def]
   revert n
@@ -92,14 +97,15 @@ theorem monus_eq_zero_iff {a n : MyNat} :
   apply Iff.intro
   · intro hanz
     match (cmp a n) with
-      | Cmp.lt hlt =>
+      | MyCmp.lt hlt =>
         rw [lt_def] at hlt
         exact And.left hlt
-      | Cmp.eq heq =>
+      | MyCmp.eq heq =>
         rw [heq]
         exact le_refl
-      | Cmp.gt hgt =>
+      | MyCmp.gt hgt =>
         exfalso
+        rw [gt_iff_lt] at hgt
         rw [lt_iff_succ_le] at hgt
         rcases hgt with ⟨b, hb⟩
         rw [succ_add_eq_add_succ] at hb

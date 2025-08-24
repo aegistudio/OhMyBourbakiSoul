@@ -4,3 +4,8 @@ defaultTargets = ["OhMyBourbakiSoul"]
 
 [[lean_lib]]
 name = "OhMyBourbakiSoul"
+
+[[require]]
+name = "batteries"
+git = "https://github.com/leanprover-community/batteries.git"
+rev = "6e89c7370ca3a91b7d1f29ef7d727a9d027d7b0d"

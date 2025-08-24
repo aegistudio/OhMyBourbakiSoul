@@ -6,7 +6,7 @@ variable {α : Type u} {β : Type v} {γ : Type w}
 namespace MySet
 
 def transform (s : MySet α) (f : α → β) : MySet β :=
-  λ (b : β) => ∃ a ∈ s, b = f a
+  { b : β | ∃ a ∈ s, b = f a }
 
 theorem transform_def {s : MySet α} {f : α → β} {y : β}:
   (y ∈ s.transform f) ↔ (∃ x ∈ s, y = f x) := by

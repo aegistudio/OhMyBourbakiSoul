@@ -9,7 +9,7 @@ variable {α : Type u}
 namespace MySet
 
 def union (s₁ s₂ : MySet α) : MySet α :=
-  λ x => (x ∈ s₁ ∨ x ∈ s₂)
+  { x : α | (x ∈ s₁) ∨ (x ∈ s₂) }
 
 instance instUnion : Union (MySet α) where
   union := union
@@ -21,7 +21,7 @@ theorem union_def {a : α} {s₁ s₂ : MySet α} :
   rfl
 
 def bigcup (A : MySet (MySet α)) : MySet α :=
-  λ x => ∃ s ∈ A, x ∈ s
+  { x : α | ∃ s ∈ A, x ∈ s }
 
 prefix:max "⋃ " => bigcup
 
@@ -32,7 +32,7 @@ theorem bigcup_def {a : α} {A : MySet (MySet α)} :
   rfl
 
 def intersect (s₁ s₂ : MySet α) : MySet α :=
-  λ x => (x ∈ s₁ ∧ x ∈ s₂)
+  { x : α | (x ∈ s₁) ∧ (x ∈ s₂) }
 
 instance instIntersect : Inter (MySet α) where
   inter := intersect
@@ -44,7 +44,7 @@ theorem intersect_def {a : α} {s₁ s₂ : MySet α} :
   rfl
 
 def bigcap (A : MySet (MySet α)) : MySet α :=
-  λ x => ∀ s ∈ A, x ∈ s
+  { x : α | ∀ s ∈ A, x ∈ s }
 
 prefix:max "⋂ " => bigcap
 
@@ -55,7 +55,7 @@ theorem bigcap_def {a : α} {A : MySet (MySet α)} :
   rfl
 
 def sdiff (s₁ s₂ : MySet α) : MySet α :=
-  λ x => (x ∈ s₁) ∧ ¬(x ∈ s₂)
+  { x : α | (x ∈ s₁) ∧ ¬(x ∈ s₂) }
 
 instance instSetDiff : SDiff (MySet α) where
   sdiff := sdiff
@@ -67,7 +67,7 @@ theorem sdiff_def {a : α} {s₁ s₂ : MySet α} :
   rfl
 
 def complement (s : MySet α) : MySet α :=
-  λ x => (x ∉ s)
+  { x : α | (x ∉ s) }
 
 postfix:max "ᶜ" => complement
 
@@ -99,7 +99,7 @@ theorem empty_complement : ∅ᶜ = univ α := by
   contradiction
 
 def powerset (s : MySet α) : MySet (MySet α) :=
-  λ s' => (s' ⊆ s)
+  { s' : MySet α | s' ⊆ s }
 
 prefix:max "𝒫" => powerset
 
@@ -267,7 +267,7 @@ theorem bigcup_inhabited_union_distrib
 
 theorem bigcup_nonempty_union_distrib
   {A : MySet (MySet α)} {b : MySet α}
-  (h : Nonempty (Subtype A)) :
+  (h : Nonempty (Subtype A.pred)) :
   ((⋃ A) ∪ b = ⋃ { a ∪ b || a ∈ A }) := by
   rcases h with ⟨x, hx⟩
   rw [<-mem_def (s := A)] at hx
@@ -378,6 +378,12 @@ theorem intersect_subset_left {a b : MySet α} :
   rw [intersect_comm]
   exact intersect_subset_right
 
+theorem intersect_empty {a : MySet α} :
+  (a ∩ ∅) = ∅ := by
+  have h : ∅ ⊆ (a ∩ ∅) := empty_subset
+  have h' : (a ∩ ∅) ⊆ ∅ := intersect_subset_right
+  exact subset_antisymm h' h
+
 theorem subset_bigcap_iff
   {a : MySet α} {B : MySet (MySet α)} :
   (∀ b ∈ B, a ⊆ b) ↔ (a ⊆ ⋂ B) := by
@@ -438,7 +444,7 @@ theorem bigcap_inhabited_intersect_distrib
 
 theorem bigcap_nonempty_intersect_distrib
   {A : MySet (MySet α)} {b : MySet α}
-  (h : Nonempty (Subtype A)) :
+  (h : Nonempty (Subtype A.pred)) :
   ((⋂ A) ∩ b = ⋂ { a ∩ b || a ∈ A }) := by
   rcases h with ⟨x, hx⟩
   rw [<-mem_def (s := A)] at hx
