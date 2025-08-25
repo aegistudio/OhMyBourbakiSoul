@@ -1,5 +1,5 @@
 import OhMyBourbakiSoul.MyBasic.MySet.Basic
-import OhMyBourbakiSoul.MyBasic.MySet.Fin
+import OhMyBourbakiSoul.MyBasic.MySet.FinDef
 import OhMyBourbakiSoul.MyBasic.MySet.OpsDecide
 import OhMyBourbakiSoul.MyBasic.MyOrd.Basic
 import OhMyBourbakiSoul.MyBasic.MyOrd.Compat
@@ -13,10 +13,10 @@ namespace MyNat
 -- For writing the following theorems simpler.
 local instance instCoeSegSucc {n : MyNat} :
   Coe n.seg.type (succ n).seg.type where
-  coe := by
-    intro x
-    have hx' := MyStrictOrd.lt_trans x.property lt_succ
-    exact ⟨x.val, hx'⟩
+  coe := x ↦ ⟨
+    x.val,
+    MyStrictOrd.lt_trans x.property lt_succ,
+  ⟩
 
 private structure _MyPigeonholeFix
   {m n : MyNat}
@@ -101,8 +101,8 @@ theorem _pigeonhole_preserve_arguments {m n : MyNat}
 -- n = 0. In that case, it suffices to let
 -- f(x) = 0, then g(x) is undefinable.
 theorem _pigeonhole_surj_fixable {m n : MyNat}
-  (f : ((succ m).seg -→ (succ (succ n)).seg)) [s: MySurj f] :
-  ∃ (g : (m.seg -→ (succ n).seg)), MySurj g := by
+  (f : ((succ m).seg -→ (succ (succ n)).seg)) [s: f.surj] :
+  ∃ (g : (m.seg -→ (succ n).seg)), g.surj := by
   generalize hy₀ : f ⟨m, lt_succ⟩ = y₀
   rcases s.surj ⟨succ n, lt_succ⟩ with ⟨x₀, hx₀⟩
 
@@ -112,11 +112,8 @@ theorem _pigeonhole_surj_fixable {m n : MyNat}
     -- (m, n+1), and fix those x such that f(x) = n+1
     -- by pointing f(x) = n.
     | Decidable.isTrue h =>
-      have (eq := hg) g : m.seg -→ (succ n).seg := by
-        apply MyFun.mk
-        intro x
-        have y := (_pigeonhole_fix f ⟨n, lt_succ⟩) x
-        exact y.y
+      have (eq := hg) g : m.seg -→ (succ n).seg :=
+        x ↦ ((_pigeonhole_fix f ⟨n, lt_succ⟩) x).y
 
       exists g
       apply MySurj.mk
@@ -164,11 +161,8 @@ theorem _pigeonhole_surj_fixable {m n : MyNat}
       rw [<-mem_seg_iff] at hy₀lt
       have (eq := hy₀') y₀' := typed y₀.val hy₀lt
 
-      have (eq := hg) g : m.seg -→ (succ n).seg := by
-        apply MyFun.mk
-        intro x
-        have y := (_pigeonhole_fix f y₀') x
-        exact y.y
+      have (eq := hg) g : m.seg -→ (succ n).seg :=
+        x ↦ ((_pigeonhole_fix f y₀') x).y
 
       exists g
       apply MySurj.mk
@@ -233,7 +227,7 @@ theorem _pigeonhole_surj_fixable {m n : MyNat}
 
 theorem pigeonhole_surj {m n : MyNat}
   (f : m.seg -→ n.seg) :
-  (m < n) → ¬(MySurj f) := by
+  (m < n) → ¬(f.surj) := by
   revert m n
   apply mathematical_induction
   · intro n f h hs
@@ -267,9 +261,9 @@ theorem pigeonhole_surj {m n : MyNat}
             contradiction
 
 theorem _pigeonhole_inj_restrict_suffices {m n : MyNat}
-  (f : (succ m).seg -→ (succ n).seg) [s: MyInj f] :
+  (f : (succ m).seg -→ (succ n).seg) [s: f.inj] :
   (∀ x : m.seg.type, (f x) ≠ n) →
-  ∃ (g : m.seg -→ n.seg), MyInj g := by
+  ∃ (g : m.seg -→ n.seg), g.inj := by
   intro h
 
   have hsms : m.seg ⊆ (succ m).seg := by
@@ -279,7 +273,7 @@ theorem _pigeonhole_inj_restrict_suffices {m n : MyNat}
   -- FIXME: What hinders Lean 4 from synthesizing
   -- instances automatically?
   have (eq := hg₀) g₀ := f.restrict m.seg hsms
-  have Ig₀ : MyInj g₀ := by
+  have Ig₀ : g₀.inj := by
     rw [hg₀]
     infer_instance
 
@@ -309,16 +303,13 @@ theorem _pigeonhole_inj_restrict_suffices {m n : MyNat}
   infer_instance
 
 theorem _pigeonhole_inj_swap_suffices {m n : MyNat}
-  (f : (succ m).seg -→ (succ n).seg) [i : MyInj f]
+  (f : (succ m).seg -→ (succ n).seg) [i : f.inj]
   (v : n.seg.type) :
   (v.val = (f ⟨m, lt_succ⟩).val) →
-  (∃ g : m.seg -→ n.seg, MyInj g) := by
+  (∃ g : m.seg -→ n.seg, g.inj) := by
   intro hv
-  have (eq := hg) g : m.seg -→ n.seg := by
-    apply MyFun.mk
-    intro x
-    have y := _pigeonhole_fix f v x
-    exact y.y
+  have (eq := hg) g : m.seg -→ n.seg :=
+    x ↦ (_pigeonhole_fix f v x).y
   exists g
   apply MyInj.mk
   intro x₁ x₂ hx₁x₂
@@ -410,8 +401,8 @@ theorem _pigeonhole_inj_swap_suffices {m n : MyNat}
 -- Given an injection f : [m+1] → [n+1], we may
 -- fix it into an injection g : [m] → [n].
 theorem _pigeonhole_inj_fixable {m n : MyNat}
-  (f : (succ m).seg -→ (succ n).seg) [i : MyInj f] :
-  ∃ (g : m.seg -→ n.seg), MyInj g := by
+  (f : (succ m).seg -→ (succ n).seg) [i : f.inj] :
+  ∃ (g : m.seg -→ n.seg), g.inj := by
   have (eq := him) im := f.range ∩ {y | y = n}
   have d : Decidable (im ∩ (succ n).seg).nonempty := by
     rw [him]
@@ -440,8 +431,7 @@ theorem _pigeonhole_inj_fixable {m n : MyNat}
         intro hx₀m
         rw [<-MyComparableOrd.not_ge_iff_lt]
         intro hge
-        have hle := y₀.property
-        rw [<-mem_def] at hle
+        have hle := y₀.membership
         rw [mem_succ_seg_iff] at hle
         have heq := MyPartialOrd.le_antisymm hle hge
         rw [Subtype.eq_iff] at hy₀
@@ -497,7 +487,7 @@ theorem _pigeonhole_inj_fixable {m n : MyNat}
 
 theorem pigeonhole_inj {m n : MyNat}
   (f : m.seg -→ n.seg) :
-  (m > n) → ¬(MyInj f) := by
+  (m > n) → ¬(f.inj) := by
   revert m n
   apply mathematical_induction
   · intro n f hz
@@ -527,7 +517,7 @@ theorem pigeonhole_inj {m n : MyNat}
         contradiction
 
 theorem pigeonhole {m n : MyNat} :
-  (m = n) ↔ (∃ f : m.seg -→ n.seg, MyBij f) := by
+  (m = n) ↔ (∃ f : m.seg -→ n.seg, f.bij) := by
   apply Iff.intro
   · intro h
     rw [seg_eq_iff] at h

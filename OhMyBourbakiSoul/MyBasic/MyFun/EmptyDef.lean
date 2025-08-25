@@ -18,7 +18,7 @@ def empty (X : MySet α) (Y : MySet β) (h₀ : X = ∅) : X -→ Y := by
   have := empty_def x.val
   contradiction
 
-theorem empty_surj_if (g : X -→ Y) : (Y = ∅) → MySurj g := by
+theorem empty_surj_if (g : X -→ Y) : (Y = ∅) → g.surj := by
   intro h₁
   apply MySurj.mk
   intro y

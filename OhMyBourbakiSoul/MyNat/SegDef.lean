@@ -1,5 +1,5 @@
 import OhMyBourbakiSoul.MyBasic.MySet.Basic
-import OhMyBourbakiSoul.MyBasic.MySet.Fin
+import OhMyBourbakiSoul.MyBasic.MySet.FinDef
 import OhMyBourbakiSoul.MyBasic.MySet.Exclusive
 import OhMyBourbakiSoul.MyBasic.MyOrd.Basic
 import OhMyBourbakiSoul.MyBasic.MyOrd.Compat

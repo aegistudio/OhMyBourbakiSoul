@@ -12,7 +12,7 @@ syntax "∃!" withoutPosition(ident) "∈" term "," term : term
 macro_rules
   | `(∃! $x, $p) => ``(ExistsUniq (fun $x => $p))
   | `(∃! $x : $t, $p) => ``(ExistsUniq (fun $x : $t => $p))
-  | `(∃! $x ∈ $c, $p) => ``(ExistsUniq (fun $x => ($x ∈ $c) ∧ $p))
+  | `(∃! $x ∈ $c, $p) => ``(ExistsUniq (fun $x : Subtype $c => $p))
 
 namespace ExistsUniq
 

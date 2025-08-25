@@ -17,7 +17,7 @@ namespace MyNat
 -- it on textbooks like Munkres easily.
 theorem _well_order_inner
   {s : MySet MyNat} (h : s.exclusive) (n : MyNat):
-  ((s ∩ seg n).nonempty) → (∃ x ∈ s, ∀ y ∈ s, x ≤ y) := by
+  ((s ∩ n.seg).nonempty) → (∃ x ∈ s, ∀ y ∈ s, x ≤ y) := by
   revert n
   apply mathematical_induction
   · intro hsz
@@ -26,7 +26,7 @@ theorem _well_order_inner
     rw [intersect_empty] at hsz
     exact empty_not_nonempty hsz
   · intro n hp hsn
-    have hse : Exclusive (s ∩ seg n).nonempty :=
+    have hse : Exclusive (s ∩ n.seg).nonempty :=
       seg_induced_exclusive_emptiness h
     apply Or.elim hse
     · intro h'
@@ -49,7 +49,7 @@ theorem _well_order_inner
             | MyCmp.eq heq =>
               exact heq
             | MyCmp.gt hgt =>
-              have : (s ∩ seg n).nonempty := by
+              have : (s ∩ n.seg).nonempty := by
                 exists n'
               contradiction
         rw [<-hnn'] at hn's
@@ -58,7 +58,7 @@ theorem _well_order_inner
         rw [<-MyComparableOrd.not_gt_iff_le]
         intro hyn
         rw [gt_iff_lt] at hyn
-        have : (s ∩ seg n).nonempty := by
+        have : (s ∩ n.seg).nonempty := by
           exists y
         contradiction
 

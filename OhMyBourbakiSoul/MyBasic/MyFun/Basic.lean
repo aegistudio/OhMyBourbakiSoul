@@ -18,6 +18,12 @@ def myfun (X : MySet α) (Y : MySet β) := MyFun X Y
 
 infix:0 " -→ " => myfun
 
+-- x ⊢→ f x
+syntax term " ⊢→ " term : term
+
+macro_rules
+  | `($x ⊢→ $p) => ``(MyFun.mk ($x ↦ $p))
+
 namespace MyFun
 
 def coe_fn (f : X -→ Y) (x : X.type) : Y.type := f.fn x
@@ -126,11 +132,15 @@ class MyInj (f : X -→ Y) where
   inj: ∀ x : X.type, ∀ x' : X.type,
       (f x = f x') → (x = x')
 
+namespace MyFun
+abbrev inj (f : X -→ Y) := MyInj f
+end MyFun
+
 namespace MyInj
 
 open MyFun
 
-theorem uniq_preimage {f : X -→ Y} [If : MyInj f] :
+theorem uniq_preimage {f : X -→ Y} [If : f.inj] :
   ∀ y : f.range.type, ∃! x : X.type,
   (f x).val = y.val := by
   intro y
@@ -149,9 +159,12 @@ theorem uniq_preimage {f : X -→ Y} [If : MyInj f] :
     symm at hx'
     exact hx'
 
+abbrev uc_preimage {f : X -→ Y} (If : f.inj) :=
+  UCPred (y ↦ (If.uniq_preimage y).prop)
+
 theorem mk_uniq_preimage {f : X -→ Y} :
   (∀ y : f.range.type, ∃! x : X.type, (f x).val = y.val) →
-  MyInj f := by
+  f.inj := by
   intro h
   apply MyInj.mk
   intro x x' hx
@@ -170,9 +183,9 @@ theorem mk_uniq_preimage {f : X -→ Y} :
     exact hy
 
 theorem compose_inj
-  (g : Y -→ Z) [Ig : MyInj g]
-  (f : X -→ Y) [If : MyInj f] :
-  MyInj (compose g f) := by
+  (g : Y -→ Z) [Ig : g.inj]
+  (f : X -→ Y) [If : f.inj] :
+  (compose g f).inj := by
   apply MyInj.mk
   intro x x' h
   change (g ∘ f) x = (g ∘ f) x' at h
@@ -181,13 +194,12 @@ theorem compose_inj
   exact If.inj x x' h'
 
 instance instCompInj
-  {g : Y -→ Z} [Ig : MyInj g]
-  {f : X -→ Y} [If : MyInj f] :
-  MyInj (compose g f) := compose_inj g f
+  {g : Y -→ Z} [Ig : g.inj]
+  {f : X -→ Y} [If : f.inj] :
+  (compose g f).inj := compose_inj g f
 
 def inverse_fn
-  {f : X -→ Y} [If : MyInj f]
-  [uc : UCPred (y ↦ (If.uniq_preimage y).prop)] :
+  {f : X -→ Y} [If : f.inj] [uc : If.uc_preimage] :
   f.range.type → f.domain.type := by
   intro y
   have hy := If.uniq_preimage y
@@ -195,13 +207,11 @@ def inverse_fn
   exact x.val
 
 def inverse
-  {f : X -→ Y} [If : MyInj f]
-  [uc : UCPred (y ↦ (If.uniq_preimage y).prop)] :
+  {f : X -→ Y} [If : f.inj] [uc : If.uc_preimage] :
   f.range -→ f.domain := MyFun.mk inverse_fn
 
 theorem inverse_def
-  {f : X -→ Y} [If : MyInj f]
-  [uc : UCPred (y ↦ (If.uniq_preimage y).prop)] :
+  {f : X -→ Y} [If : f.inj] [uc : If.uc_preimage] :
   If.inverse ∘ f.trim = id := by
   funext x
   change If.inverse (f.trim x) = x
@@ -219,9 +229,8 @@ theorem inverse_def
   exact trim_compat x
 
 theorem inverse_inj
-  {f : X -→ Y} [If : MyInj f]
-  [uc : UCPred (y ↦ (If.uniq_preimage y).prop)] :
-  MyInj (If.inverse) := by
+  {f : X -→ Y} [If : f.inj] [uc : If.uc_preimage] :
+  If.inverse.inj := by
   apply MyInj.mk
   intro y y' hxx'
   have hx₀ := f.trim.range_mem.mp y.property
@@ -238,13 +247,12 @@ theorem inverse_inj
   rw [hx, hx', hxx']
 
 instance instInverseInj
-  {f : X -→ Y} [If : MyInj f]
-  [uc : UCPred λ y => (If.uniq_preimage y).prop] :
-  MyInj (If.inverse) := inverse_inj
+  {f : X -→ Y} [If : f.inj] [uc : If.uc_preimage] :
+  If.inverse.inj := inverse_inj
 
 theorem trim_inj
-  {f : X -→ Y} [If : MyInj f] :
-  MyInj (f.trim) := by
+  {f : X -→ Y} [If : f.inj] :
+  f.trim.inj := by
   apply MyInj.mk
   intro x x' hxx'
   rw [Subtype.eq_iff] at hxx'
@@ -253,13 +261,13 @@ theorem trim_inj
   exact If.inj x x' hxx'
 
 instance instTrimInj
-  {f : X -→ Y} [If : MyInj f] :
-  MyInj (f.trim) := trim_inj
+  {f : X -→ Y} [If : f.inj] :
+  f.trim.inj := trim_inj
 
 theorem restrict_inj
-  {f : X -→ Y}  [If : MyInj f]
+  {f : X -→ Y}  [If : f.inj]
   {X' : MySet α} {h : X' ⊆ X} :
-  MyInj (f.restrict X' h) := by
+  (f.restrict X' h).inj := by
   apply MyInj.mk
   intro x x' hxx'
   repeat rw [<-restrict_compat] at hxx'
@@ -270,14 +278,14 @@ theorem restrict_inj
   exact h'
 
 instance instRestrictInj
-  {f : X -→ Y} [If : MyInj f]
+  {f : X -→ Y} [If : f.inj]
   {X' : MySet α} {h : X' ⊆ X} :
-  MyInj (f.restrict X' h) := restrict_inj
+  (f.restrict X' h).inj := restrict_inj
 
 theorem expand_inj
-  {f : X -→ Y} [If : MyInj f]
+  {f : X -→ Y} [If : f.inj]
   {Y' : MySet β} {h : Y ⊆ Y'} :
-  MyInj (f.expand Y' h) := by
+  (f.expand Y' h).inj := by
   apply MyInj.mk
   intro x x' hxx'
   repeat rw [<-expand_compat] at hxx'
@@ -287,21 +295,24 @@ theorem expand_inj
   exact If.inj x x' hxx'
 
 instance instExpandInj
-  {f : X -→ Y} [If : MyInj f]
+  {f : X -→ Y} [If : f.inj]
   {Y' : MySet β} {h : Y ⊆ Y'} :
-  MyInj (f.expand Y' h) := expand_inj
-
+  (f.expand Y' h).inj := expand_inj
 
 end MyInj
 
 class MySurj (f : X -→ Y) where
   surj: ∀ (y : Y.type), (∃ x : X.type, f x = y)
 
+namespace MyFun
+abbrev surj (f : X -→ Y) := MySurj f
+end MyFun
+
 namespace MySurj
 
 open MyFun
 
-theorem range_is_codomain (f : X -→ Y) [S: MySurj f] :
+theorem range_is_codomain (f : X -→ Y) [S: f.surj] :
   f.range = f.codomain := by
   apply subset_antisymm
   · exact range_subsets_codomain
@@ -320,9 +331,9 @@ theorem range_is_codomain (f : X -→ Y) [S: MySurj f] :
     exact hx'
 
 theorem compose_surj
-  (g : Y -→ Z) [Sg : MySurj g]
-  (f : X -→ Y) [Sf : MySurj f] :
-  MySurj (compose g f) := by
+  (g : Y -→ Z) [Sg : g.surj]
+  (f : X -→ Y) [Sf : f.surj] :
+  (compose g f).surj := by
   apply MySurj.mk
   intro z
   change ∃ x, ((g ∘ f) x) = z
@@ -333,12 +344,12 @@ theorem compose_surj
   rw [hx, hy]
 
 instance instCompSurj
-  {g : Y -→ Z} [Sg : MySurj g]
-  {f : X -→ Y} [Sf : MySurj f] :
-  MySurj (compose g f) := compose_surj g f
+  {g : Y -→ Z} [Sg : g.surj]
+  {f : X -→ Y} [Sf : f.surj] :
+  (compose g f).surj := compose_surj g f
 
 theorem trim_surj
-  {f : X -→ Y} : MySurj (f.trim) := by
+  {f : X -→ Y} : f.trim.surj := by
   apply MySurj.mk
   intro y
   have hy := y.property
@@ -352,8 +363,20 @@ theorem trim_surj
   exact hx
 
 instance instTrimSurj
-  {f : X -→ Y} : MySurj (f.trim) := trim_surj
+  {f : X -→ Y} : f.trim.surj := trim_surj
 
 end MySurj
 
-class MyBij (f : X -→ Y) extends MyInj f, MySurj f
+class MyBij (f : X -→ Y) extends f.inj, f.surj
+
+namespace MyFun
+abbrev bij (f : X -→ Y) := MyBij f
+end MyFun
+
+namespace MyBij
+
+instance instAutoBij {f : X -→ Y}
+  [If : f.inj] [Sf : f.surj] : f.bij :=
+  @MyBij.mk _ _ _ _ _ If Sf
+
+end MyBij

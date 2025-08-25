@@ -16,7 +16,7 @@ open MyLogic
 -- If x' ∉ f(x'), then x' ∈ f(x') by definition.
 -- And x' ∈ f(x') ↔ x' ∉ f(x') leads to paradox.
 theorem no_surjection_powerset :
-  ∀ f : X -→ 𝒫 X, ¬(MySurj f) := by
+  ∀ f : X -→ 𝒫 X, ¬(f.surj) := by
   intro f Sf
   generalize hs : unlift_subtype { x ∈ X | x.val ∉ (f x).val } = s
   have hs'X : s ⊆ X := by
@@ -66,6 +66,6 @@ theorem no_surjection_powerset :
   exact contra_with_iff_not h
 
 theorem no_bijection_powerset :
-  ∀ f : X -→ 𝒫 X, ¬(MyBij f) := by
+  ∀ f : X -→ 𝒫 X, ¬(f.bij) := by
   intro f Bf
   exact no_surjection_powerset f Bf.toMySurj

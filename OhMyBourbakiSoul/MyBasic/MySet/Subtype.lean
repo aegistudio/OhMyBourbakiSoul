@@ -1,3 +1,4 @@
+import OhMyBourbakiSoul.MyBasic.MapsTo
 import OhMyBourbakiSoul.MyBasic.MySet.Basic
 import OhMyBourbakiSoul.MyBasic.MySet.Subset
 
@@ -10,6 +11,14 @@ variable {X X' : MySet α}
 
 @[reducible]
 def type (s : MySet α) := Subtype s.pred
+
+instance instCoeType {s : MySet α} :
+  Coe (Subtype s.pred) (s.type) where
+  coe := x ↦ x
+
+instance instCoeSubtype {s : MySet α} :
+  Coe (s.type) (Subtype s.pred) where
+  coe := x ↦ x
 
 abbrev nonempty (s : MySet α) := Nonempty s.type
 

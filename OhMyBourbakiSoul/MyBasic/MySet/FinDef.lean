@@ -18,7 +18,7 @@ class MyCountSet (s : MySet α) where
   ctr : MySet MyNat
   decidable_ctr : ctr.decidable
   fn : ctr -→ s
-  surj : MySurj fn
+  surj : fn.surj
 
 namespace MySet
 abbrev countable (s : MySet α) := MyCountSet s
@@ -140,7 +140,7 @@ theorem index_def {a : s.type} :
 
 -- If a set is countable, then we are always able to
 -- build an injection from the set to MyNat.
-instance instIndexInj : MyInj (MyFun.mk s.index) := by
+instance instIndexInj : (MyFun.mk s.index).inj := by
   apply MyInj.mk
   intro a a'
   intro h

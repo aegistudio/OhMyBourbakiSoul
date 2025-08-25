@@ -7,4 +7,4 @@ import OhMyBourbakiSoul.MyBasic.MySet.OpsDef
 import OhMyBourbakiSoul.MyBasic.MySet.OpsDecide
 import OhMyBourbakiSoul.MyBasic.MySet.DeMorgan
 
-import OhMyBourbakiSoul.MyBasic.MySet.Fin
+import OhMyBourbakiSoul.MyBasic.MySet.FinDef

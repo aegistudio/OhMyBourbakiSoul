@@ -17,18 +17,19 @@ theorem identity_def
   change id x = x
   rfl
 
-instance instIdentityInj : MyInj (identity X) := by
+instance instIdentityInj : (identity X).inj := by
   apply MyInj.mk
   intro x x' h
   repeat rw [identity_def] at h
   exact h
 
-instance instIdentitySurj : MySurj (identity X) := by
+instance instIdentitySurj : (identity X).surj := by
   apply MySurj.mk
   intro x
   exists x
 
-instance instIdentityBij : MyBij (identity X) where
+instance instIdentityBij : (identity X).bij :=
+  inferInstance
 
 def identity' (h : X = Y) : X -→ Y := by
   apply MyFun.mk
@@ -44,7 +45,7 @@ theorem identity'_def {x : X.type} {h : X = Y} :
   rfl
 
 instance instIdentity'Inj {h : X = Y} :
-  MyInj (identity' h) := by
+  (identity' h).inj := by
   apply MyInj.mk
   intro x x' hxx'
   rw [Subtype.eq_iff] at hxx'
@@ -53,7 +54,7 @@ instance instIdentity'Inj {h : X = Y} :
   exact hxx'
 
 instance instIdentity'Surj {h : X = Y} :
-  MySurj (identity' h) := by
+  (identity' h).surj := by
   apply MySurj.mk
   intro x
   have hx := x.membership
@@ -67,9 +68,6 @@ instance instIdentity'Surj {h : X = Y} :
   exact hx'
 
 instance instIdentity'Bij {h : X = Y} :
-  MyBij (identity' h) := by
-  have If : MyInj (identity' h) := inferInstance
-  have Sf : MySurj (identity' h) := inferInstance
-  exact @MyBij.mk _ _ _ _ _ If Sf
+  (identity' h).bij := inferInstance
 
 end MyFun
