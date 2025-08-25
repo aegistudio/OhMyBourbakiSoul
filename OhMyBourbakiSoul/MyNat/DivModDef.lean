@@ -101,11 +101,11 @@ def div (a b : MyNat) := (divmod a b).fst
 
 def mod (a b : MyNat) := (divmod a b).snd
 
-instance instDiv : HDiv MyNat MyNat MyNat where
-  hDiv := div
+instance instDiv : Div MyNat where
+  div := div
 
-instance instMod : HMod MyNat MyNat MyNat where
-  hMod := mod
+instance instMod : Mod MyNat where
+  mod := mod
 
 theorem div_def {a b : MyNat} :
   a / b = (divmod a b).fst := by rfl

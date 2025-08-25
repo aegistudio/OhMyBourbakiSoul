@@ -48,7 +48,7 @@ theorem typed_eta {s : MySet α} {a : α} {h : a ∈ s} :
 syntax "{ " withoutPosition(ident " ∈ " term " | " term) " }" : term
 
 macro_rules
-  | `({ $x ∈ $s | $p }) => ``(MySet.mk (fun ($x : ($s).type) => $p))
+  | `({ $x ∈ $s | $p }) => ``(MySet.mk (($x : ($s).type) ↦ $p))
 
 def lift_univ (x : α) : (univ α).type := by
   apply (univ α).typed
@@ -78,5 +78,19 @@ theorem unlift_subset {s : MySet X.type} :
   have hxx' := x'.membership
   rw [<-And.left hx'] at hxx'
   exact hxx'
+
+theorem unlift_subtype_def {s : MySet X.type} {a : X.type} :
+  (a ∈ s) ↔ (a.val ∈ unlift_subtype s) := by
+  apply Iff.intro
+  · intro h
+    unfold unlift_subtype
+    exists a
+  · intro h
+    unfold unlift_subtype at h
+    rcases h with ⟨a', ha'⟩
+    rcases ha' with ⟨ha'a, ha's⟩
+    rw [<-Subtype.eq_iff] at ha'a
+    rw [<-ha'a] at ha's
+    exact ha's
 
 end MySet

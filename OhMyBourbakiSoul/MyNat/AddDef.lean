@@ -10,8 +10,8 @@ def add (a b : MyNat) : MyNat := by
     | succ b' => exact succ (add a b')
 
 -- enable us to write a + b := add a b
-instance instHAdd : HAdd MyNat MyNat MyNat where
-  hAdd := add
+instance instAdd : Add MyNat where
+  add := add
 
 @[simp] theorem add_zero {a : MyNat} :
   a + zero = a := by

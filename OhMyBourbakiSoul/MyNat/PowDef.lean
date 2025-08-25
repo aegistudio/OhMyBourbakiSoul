@@ -23,8 +23,8 @@ theorem one_mul_identity : (nat_mul one) = id := by
 
 def pow (a n : MyNat) : MyNat := ((nat_mul a) ^ n) one
 
-instance instPow : HPow MyNat MyNat MyNat where
-  hPow := pow
+instance instPow : Pow MyNat MyNat where
+  pow := pow
 
 theorem pow_def {a n : MyNat} :
   a ^ n = ((nat_mul a) ^ n) one := by rfl

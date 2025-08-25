@@ -10,8 +10,8 @@ def mul (a b : MyNat) : MyNat := by
     | zero => exact zero
     | succ b' => exact a + (mul a b')
 
-instance instMul : HMul MyNat MyNat MyNat where
-  hMul := mul
+instance instMul : Mul MyNat where
+  mul := mul
 
 @[simp] theorem mul_zero {a : MyNat} :
   a * zero = zero := by
