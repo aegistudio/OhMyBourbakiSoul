@@ -1,6 +1,8 @@
 import OhMyBourbakiSoul.MyNat.SetDef
+import OhMyBourbakiSoul.MyNat.SegDef
 import OhMyBourbakiSoul.MyBasic.MySet.Subtype
 import OhMyBourbakiSoul.MyNat.MulDef
+import OhMyBourbakiSoul.MyNat.MulOrd
 import OhMyBourbakiSoul.MyNat.DivModDef
 import OhMyBourbakiSoul.MyNat.Mu
 import OhMyBourbakiSoul.MyBasic.MyLogic.Propositional
@@ -128,6 +130,101 @@ theorem le_succ_if_dvd {m n : MyNat} :
     (not_dvd_if_lt_succ (m := m) (n := n))
   rw [<-MyComparableOrd.not_gt_iff_le]
   exact h
+
+theorem dvd_mul {a b c : MyNat} :
+  (a ∣ b) → (a ∣ b * c) := by
+  intro hab
+  rw [dvd_def] at hab
+  rcases hab with ⟨k, hk⟩
+  rw [dvd_def]
+  exists k * c
+  rw [hk]
+  rw [mul_assoc]
+  rw [mul_comm (a := a) (b := c)]
+  rw [<-mul_assoc]
+
+theorem dvd_mul_both {a b c : MyNat} :
+  (a ∣ b) → (a * c ∣ b * c) := by
+  intro hab
+  rw [dvd_def] at hab
+  rcases hab with ⟨k, hk⟩
+  rw [dvd_def]
+  exists k
+  rw [hk]
+  rw [mul_assoc]
+
+theorem dvd_mul_both_cancel_nonzero {a b c : MyNat} :
+  (c ≠ zero) → ((a * c ∣ b * c) ↔ (a ∣ b)) := by
+  intro hcnz
+  apply Iff.intro
+  · intro h
+    rw [dvd_def] at h
+    rcases h with ⟨k, hk⟩
+    rw [<-mul_assoc] at hk
+    have hk' := mul_cancel_left hcnz hk
+    rw [dvd_def]
+    exists k
+  · exact dvd_mul_both
+
+theorem dvd_refl {a : MyNat} : (a ∣ a) := dvd_self
+
+theorem dvd_trans {a b c : MyNat} :
+  (a ∣ b) → (b ∣ c) → (a ∣ c) := by
+  intro hab hbc
+  rw [dvd_def] at hab hbc
+  rcases hab with ⟨k₁, hk₁⟩
+  rcases hbc with ⟨k₂, hk₂⟩
+  rw [dvd_def]
+  exists k₂ * k₁
+  rw [mul_assoc]
+  rw [<-hk₁]
+  exact hk₂
+
+theorem dvd_antisymm {a b : MyNat} :
+  (a ∣ b) → (b ∣ a) → (a = b) := by
+  intro hab hba
+  rw [dvd_def] at hab
+  rcases hab with ⟨k, hk⟩
+  match (cmp k one) with
+    | MyCmp.lt hlt =>
+      rw [lt_iff_succ_le] at hlt
+      rw [one_def] at hlt
+      rw [le_succ_cancel] at hlt
+      have hkz : k = zero :=
+        MyPartialOrd.le_antisymm hlt zero_le
+      rw [hkz] at hk
+      rw [zero_mul] at hk
+      rw [hk]
+      match a with
+        | zero =>
+          rfl
+        | succ a' =>
+          exfalso
+          rw [hk] at hba
+          have : ¬(zero ∣ (succ a')) :=
+            zero_not_dvd_succ
+          contradiction
+    | MyCmp.eq heq =>
+      symm at hk
+      rw [heq] at hk
+      rw [one_mul] at hk
+      exact hk
+    | MyCmp.gt hgt =>
+      match a with
+        | zero =>
+          symm at hk
+          rw [mul_zero] at hk
+          exact hk
+        | succ a' =>
+          exfalso
+          have : ¬(b ∣ (succ a')) := by
+            apply not_dvd_if_lt_succ
+            rw [<-one_mul (a := succ a')]
+            rw [hk]
+            rw [gt_iff_lt]
+            rw [lt_mul_cancel succ_ne_zero]
+            exact hgt
+          contradiction
 
 def is_prime (n : MyNat) :=
   (n > one) ∧ (∀ x ∈ ℕ, (x ∣ n) → (x = one) ∨ (x = n))
@@ -294,7 +391,7 @@ theorem reducible_if {n : MyNat} :
 
 -- For a specific MyNat, you may prove its primality
 -- by decide tactic automatically.
-example : zero ∉ ℙ := by decide -- 0 ∉ ℙ
+theorem zero_not_prime : zero ∉ ℙ := by decide -- 0 ∉ ℙ
 example : one ∉ ℙ := by decide -- 1 ∉ ℙ
 example : succ one ∈ ℙ := by decide -- 2 ∈ ℙ
 example : succ (succ one) ∈ ℙ := by decide -- 3 ∈ ℙ

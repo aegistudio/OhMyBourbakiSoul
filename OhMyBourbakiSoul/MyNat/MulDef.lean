@@ -105,14 +105,22 @@ theorem mul_assoc {a b c : MyNat} :
     rw [mul_left_distrib]
     rw [hp]
 
+theorem mul_eq_zero {a b : MyNat} :
+  (a * b = zero) → (a = zero) ∨ (b = zero) := by
+  intro habz
+  match a with
+    | zero =>
+      exact Or.inl rfl
+    | succ a' =>
+      rw [succ_mul] at habz
+      apply Or.inr
+      exact add_eq_zero_cancel habz
+
 theorem mul_eq_zero_cancel {a b : MyNat} :
   (a ≠ zero) → (a * b = zero) → (b = zero) := by
   intro hanz habz
-  rw [ne_zero_iff_succ] at hanz
-  rcases hanz with ⟨a', ha'⟩
-  rw [ha'] at habz
-  rw [succ_mul] at habz
-  apply add_eq_zero_cancel habz
+  have h := mul_eq_zero habz
+  exact Or.resolve_left h hanz
 
 theorem mul_eq_zero_cancel_left {a b : MyNat} :
   (b ≠ zero) → (a * b = zero) → (a = zero) := by

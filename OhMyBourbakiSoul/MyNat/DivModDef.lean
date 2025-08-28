@@ -306,12 +306,36 @@ theorem divmod_succ {a b q r : MyNat} :
     · rw [hr]
       apply _mod_inner_succ le_refl succ_ne_zero
 
-theorem divmod_nonzero {a b q r : MyNat} (hnz: b ≠ zero):
+theorem divmod_nonzero {a b q r : MyNat} (hnz: b ≠ zero) :
   (a = b * q + r) ∧ (r < b) ↔
   (q = a / b) ∧ (r = a % b) := by
   rw [ne_zero_iff_succ] at hnz
   rcases hnz with ⟨b', hb'⟩
   rw [hb']
   apply divmod_succ
+
+theorem mod_lt {a b : MyNat} (hnz : b ≠ zero) :
+  (a % b < b) := by
+  generalize hq : a / b = q
+  generalize hr : a % b = r
+  symm at hq hr
+  have hqr := And.intro hq hr
+  rw [<-divmod_nonzero hnz] at hqr
+  exact And.right hqr
+
+theorem mod_shift_eq
+  {a b k : MyNat} (hnz : b ≠ zero) :
+  (a + b * k) % b = a % b := by
+  have h : a = b * (a / b) + (a % b) :=
+    divmod_identity
+  rw [<-add_cancel (c := b * k)] at h
+  rw (occs := [2]) [<-add_comm] at h
+  rw [<-add_assoc] at h
+  rw [<-mul_left_distrib] at h
+  have hr : (a % b) < b := mod_lt hnz
+  have hqr := And.intro h hr
+  rw [divmod_nonzero hnz] at hqr
+  symm
+  exact And.right hqr
 
 end MyNat

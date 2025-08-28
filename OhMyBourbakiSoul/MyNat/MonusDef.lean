@@ -49,6 +49,13 @@ theorem monus_cancel {a b : MyNat} : (a + b) ⊖ a = b := by
     rw [monus_dec_succ]
     exact hp
 
+theorem monus_if_add {a b c : MyNat} :
+  (a + b = c) → (a = c ⊖ b) := by
+  intro h
+  rw [<-h]
+  rw [add_comm]
+  rw [monus_cancel]
+
 theorem monus_cancel_self {a : MyNat} : a ⊖ a = zero := by
   apply monus_cancel (b := zero)
 
@@ -120,5 +127,21 @@ theorem monus_eq_zero_iff {a n : MyNat} :
     · intro h'
       rw [h']
       exact monus_cancel_self
+
+theorem monus_iff_add_safe {a b c : MyNat} :
+  (a ≠ zero) → ((a = c ⊖ b) ↔ (a + b = c)) := by
+  intro hanz
+  apply Iff.intro
+  · intro ha
+    rw [ha] at hanz
+    rw [ne_eq] at hanz
+    rw [monus_eq_zero_iff] at hanz
+    rw [MyComparableOrd.not_ge_iff_lt] at hanz
+    rw [ha]
+    rw [add_comm]
+    apply monus_cancel_safe
+    rw [MyCompatOrd.compat] at hanz
+    exact And.left hanz
+  · exact monus_if_add
 
 end MyNat

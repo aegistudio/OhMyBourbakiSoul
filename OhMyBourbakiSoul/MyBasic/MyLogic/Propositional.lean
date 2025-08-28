@@ -21,4 +21,18 @@ theorem modus_tollens_neg : (p → ¬q) → (q → ¬p) := by
   have hnq := hpnq hp
   contradiction
 
+theorem demorgan_not_or : ¬(p ∨ q) ↔ (¬p ∧ ¬q) := by
+  apply Iff.intro
+  · intro hnpq
+    apply And.intro
+    · intro hp
+      apply hnpq
+      exact Or.inl hp
+    · intro hq
+      apply hnpq
+      exact Or.inr hq
+  · intro hnpnq hpq
+    rcases hnpnq with ⟨hp, hq⟩
+    apply Or.elim hpq <;> (intro; contradiction)
+
 end MyLogic

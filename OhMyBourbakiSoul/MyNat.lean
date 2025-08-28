@@ -10,3 +10,5 @@ import OhMyBourbakiSoul.MyNat.Mu
 import OhMyBourbakiSoul.MyNat.SegDef
 import OhMyBourbakiSoul.MyNat.WellOrd
 import OhMyBourbakiSoul.MyNat.Pigeonhole
+import OhMyBourbakiSoul.MyNat.DvdPrimeDef
+import OhMyBourbakiSoul.MyNat.Factor
