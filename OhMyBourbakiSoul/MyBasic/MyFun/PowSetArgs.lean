@@ -18,7 +18,7 @@ open MyLogic
 theorem no_surjection_powerset :
   ∀ f : X -→ 𝒫 X, ¬(f.surj) := by
   intro f Sf
-  generalize hs : unlift_subtype { x ∈ X | x.val ∉ (f x).val } = s
+  generalize hs : { x ∈ X | x.val ∉ (f x).val } = s
   have hs'X : s ⊆ X := by
     rw [<-hs]
     apply unlift_subset
@@ -31,36 +31,23 @@ theorem no_surjection_powerset :
   have h₀ : x.val ∈ s → x.val ∉ s := by
     intro hxs
     rw [<-hs] at hxs
-    unfold unlift_subtype at hxs
-    change ∃ (x' : X.type),
-      (x.val = x'.val) ∧
-      (¬x'.val ∈ (f.coe_fn x').val) at hxs
-    rcases hxs with ⟨x', hx'⟩
-    rcases hx' with ⟨hxx', hx's⟩
-    rw [<-Subtype.eq_iff] at hxx'
-    rw [<-hxx'] at hx's
-    rw [hx] at hx's
-    have hs' : s'.val = s := by
-      rw [<-hs']
-    rw [<-hs']
-    exact hx's
+    rw [<-unlift_subtype_def] at hxs
+    change x.val ∉ (f x).val at hxs
+    rw [hx] at hxs
+    rw [<-hs'] at hxs
+    change x.val ∉ s at hxs
+    exact hxs
 
   have h₁ : x.val ∉ s → x.val ∈ s := by
     intro hnxs
     rw [<-hs'] at hx
     rw [Subtype.eq_iff] at hx
     change (f x).val = s at hx
-    unfold unlift_subtype at hs
-    rw [mem_def]
     rw [<-hs]
-    change ∃ (x' : X.type),
-      (x.val = x'.val) ∧
-      (¬x'.val ∈ (f.coe_fn x').val)
-    exists x
-    apply And.intro
-    · rfl
-    · rw [<-hx] at hnxs
-      exact hnxs
+    rw [<-unlift_subtype_def]
+    change x.val ∉ (f x).val
+    rw [hx]
+    exact hnxs
 
   have h := Iff.intro h₀ h₁
   exact contra_with_iff_not h

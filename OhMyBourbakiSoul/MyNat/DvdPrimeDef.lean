@@ -346,8 +346,7 @@ instance instDecidePrime : DecidablePred is_prime := by
       have := And.left h'
       contradiction
 
-def primes : MySet MyNat :=
-  unlift_subtype ({ x ∈ ℕ | is_prime x })
+def primes : MySet MyNat := { x ∈ ℕ | is_prime x }
 
 def ℙ := primes
 

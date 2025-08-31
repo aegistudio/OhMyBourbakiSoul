@@ -44,12 +44,6 @@ theorem typed_eta {s : MySet α} {a : α} {h : a ∈ s} :
   unfold typed
   rfl
 
--- { x ∈ type | term }
-syntax "{ " withoutPosition(ident " ∈ " term " | " term) " }" : term
-
-macro_rules
-  | `({ $x ∈ $s | $p }) => ``(MySet.mk (($x : ($s).type) ↦ $p))
-
 def lift_univ (x : α) : (univ α).type := by
   apply (univ α).typed
   exact univ_def x
@@ -67,6 +61,12 @@ theorem lift_subtype_def {h : X ⊆ X'} {x : X.type} :
 
 def unlift_subtype (s : MySet X.type) : MySet α :=
   { x : α | ∃ (x' : X.type), (x = x'.val) ∧ (x' ∈ s) }
+
+-- { x ∈ type | term }
+syntax "{ " withoutPosition(ident " ∈ " term " | " term) " }" : term
+
+macro_rules
+  | `({ $x ∈ $s | $p }) => ``(unlift_subtype (MySet.mk (($x : ($s).type) ↦ $p)))
 
 theorem unlift_subset {s : MySet X.type} :
   unlift_subtype s ⊆ X := by
