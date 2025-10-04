@@ -11,13 +11,25 @@ structure MySet (α : Type u) where
 
 -- { x | term }
 -- { x : type | term }
+-- { (term : type) | term }
 syntax "{ " withoutPosition(ident " | " term) " }" : term
 syntax "{ " withoutPosition(ident " : " term " | " term) " }" : term
+syntax "{ " withoutPosition("(" term " : " term ")" " | " term) " }" : term
 -- Grammar { x ∈ s | term } is defined in Subtype.lean
 
 macro_rules
   | `({ $x | $p }) => ``(MySet.mk (fun $x => $p))
   | `({ $x : $t | $p }) => ``(MySet.mk (fun ($x : $t) => $p))
+  | `({ ($x : $t) | $p }) => ``(MySet.mk (fun ($x : $t) => $p))
+
+-- Pretty printing when matching MySet.mk.
+@[app_unexpander MySet.mk]
+def unexpand_myset : Lean.PrettyPrinter.Unexpander
+  | `($_ fun $x:ident => $p) => `({ $x | $p })
+  -- FIXME: $t always not shown.
+  | `($_ fun $x:ident : $t => $p) => `({ $x : $t | $p })
+  | `($_ fun ($x : $t) => $p) => `({ ($x : $t) | $p })
+  | _ => throw ()
 
 namespace MySet
 

@@ -359,7 +359,7 @@ theorem prime_mem {p : MyNat} : (p ∈ ℙ) ↔ (p.is_prime) := by
     symm
     exact typed_eta
   rw (occs := [1]) [hp'v]
-  rw [<-unlift_subtype_def]
+  rw [restrict_def]
   change p'.val.is_prime ↔ p.is_prime
   rw [hp'v]
 

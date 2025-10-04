@@ -5,6 +5,7 @@ variable {α : Type u} {β : Type v} {γ : Type w}
 
 namespace MySet
 
+@[irreducible]
 def transform (s : MySet α) (f : α → β) : MySet β :=
   { b : β | ∃ a ∈ s, b = f a }
 
@@ -34,6 +35,12 @@ syntax "{ " withoutPosition(term " || " ident " ∈ " term) " }" : term
 
 macro_rules
   | `({ $p || $x ∈ $s }) => ``(transform $s fun $x => $p)
+
+-- Pretty printing when matching transform.
+@[app_unexpander transform]
+def unexpand_transform : Lean.PrettyPrinter.Unexpander
+  | `($_ $s fun $x:ident => $p) => ``({ $p || $x ∈ $s })
+  | _ => throw ()
 
 theorem transform_compose {s : MySet α} {g : α → β} {f : β → γ} :
   { f b || b ∈ { g a || a ∈ s } } = { f (g a) || a ∈ s } := by

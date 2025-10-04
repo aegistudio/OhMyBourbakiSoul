@@ -21,7 +21,7 @@ theorem no_surjection_powerset :
   generalize hs : { x ∈ X | x.val ∉ (f x).val } = s
   have hs'X : s ⊆ X := by
     rw [<-hs]
-    apply unlift_subset
+    exact restrict_subset
   rw [<-powerset_def] at hs'X
   rw [mem_def] at hs'X
   generalize hs' : Subtype.mk s hs'X = s'
@@ -31,7 +31,7 @@ theorem no_surjection_powerset :
   have h₀ : x.val ∈ s → x.val ∉ s := by
     intro hxs
     rw [<-hs] at hxs
-    rw [<-unlift_subtype_def] at hxs
+    rw [restrict_def] at hxs
     change x.val ∉ (f x).val at hxs
     rw [hx] at hxs
     rw [<-hs'] at hxs
@@ -44,7 +44,7 @@ theorem no_surjection_powerset :
     rw [Subtype.eq_iff] at hx
     change (f x).val = s at hx
     rw [<-hs]
-    rw [<-unlift_subtype_def]
+    rw [restrict_def]
     change x.val ∉ (f x).val
     rw [hx]
     exact hnxs

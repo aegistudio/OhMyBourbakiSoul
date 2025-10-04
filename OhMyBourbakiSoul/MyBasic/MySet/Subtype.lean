@@ -59,38 +59,44 @@ def lift_subtype (h : X ⊆ X') (x : X.type) : X'.type := by
 theorem lift_subtype_def {h : X ⊆ X'} {x : X.type} :
   (lift_subtype h x).val = x.val := by rfl
 
-def unlift_subtype (s : MySet X.type) : MySet α :=
-  { x : α | ∃ (x' : X.type), (x = x'.val) ∧ (x' ∈ s) }
-
 -- { x ∈ type | term }
 syntax "{ " withoutPosition(ident " ∈ " term " | " term) " }" : term
 
-macro_rules
-  | `({ $x ∈ $s | $p }) => ``(unlift_subtype (MySet.mk (($x : ($s).type) ↦ $p)))
+@[irreducible]
+def restrict (X : MySet α) (p : X.type -> Prop) :=
+  { x : α | ∃ (x' : X.type), (x = x'.val) ∧ (p x') }
 
-theorem unlift_subset {s : MySet X.type} :
-  unlift_subtype s ⊆ X := by
+macro_rules
+  | `({ $x ∈ $s | $p }) => `(restrict $s fun $x => $p)
+
+-- Pretty printing when matching restrict.
+@[app_unexpander restrict]
+def unexpand_restrict : Lean.PrettyPrinter.Unexpander
+  | `($_ $s fun $x:ident => $p) => `({ $x ∈ $s | $p })
+  | _ => throw ()
+
+theorem restrict_subset {p : X.type -> Prop} :
+  (restrict X p) ⊆ X := by
   rw [subset_def]
   intro x hx
-  unfold unlift_subtype at hx
-  change ∃ (x' : X.type), (x = x'.val) ∧ (x' ∈ s) at hx
+  unfold restrict at hx
+  change ∃ (x' : X.type), (x = x'.val) ∧ (p x') at hx
   rcases hx with ⟨x', hx'⟩
   have hxx' := x'.membership
   rw [<-And.left hx'] at hxx'
   exact hxx'
 
-theorem unlift_subtype_def {s : MySet X.type} {a : X.type} :
-  (a ∈ s) ↔ (a.val ∈ unlift_subtype s) := by
+theorem restrict_def {p : X.type -> Prop} {x : X.type}:
+  (x.val ∈ restrict X p) ↔ (p x) := by
+  unfold restrict
+  rw [mem_def]
+  change (∃ x', (x.val = x'.val) ∧ (p x')) ↔ (p x)
   apply Iff.intro
-  · intro h
-    unfold unlift_subtype
-    exists a
-  · intro h
-    unfold unlift_subtype at h
-    rcases h with ⟨a', ha'⟩
-    rcases ha' with ⟨ha'a, ha's⟩
-    rw [<-Subtype.eq_iff] at ha'a
-    rw [<-ha'a] at ha's
-    exact ha's
+  · intro ⟨x', ⟨hxx', hpx'⟩⟩
+    rw [<-Subtype.eq_iff] at hxx'
+    rw [hxx']
+    exact hpx'
+  · intro hpx
+    exists x
 
 end MySet

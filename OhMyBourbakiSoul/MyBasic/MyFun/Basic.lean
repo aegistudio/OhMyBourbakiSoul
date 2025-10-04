@@ -28,6 +28,12 @@ namespace MyFun
 
 def coe_fn (f : X -→ Y) (x : X.type) : Y.type := f.fn x
 
+-- Unexpand the noisy term "coe_fn f x".
+@[app_unexpander coe_fn]
+def unexpand_coe_fn : Lean.PrettyPrinter.Unexpander
+  | `($_ $f $x) => `($f $x)
+  | _ => throw ()
+
 instance instCoeFn : CoeFun (X -→ Y)
   (_ ↦ X.type → Y.type) where
   coe := coe_fn
@@ -150,7 +156,8 @@ theorem uniq_preimage {f : X -→ Y} [If : f.inj] :
   rcases hy with ⟨x, hx⟩
   exists x
   apply And.intro
-  · symm at hx
+  · change (f x).val = y.val
+    symm at hx
     exact hx
   · intro x' hx'
     rw [hx] at hx'
