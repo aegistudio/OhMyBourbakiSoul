@@ -1,5 +1,4 @@
 import OhMyBourbakiSoul.MyBasic.MyFun.Basic
-import OhMyBourbakiSoul.MyBasic.MySet.Subtype
 
 universe u
 variable {α : Type u}

@@ -1,7 +1,6 @@
 import OhMyBourbakiSoul.MyBasic.MapsTo
 import OhMyBourbakiSoul.MyBasic.MySet.Basic
 import OhMyBourbakiSoul.MyBasic.MySet.Subset
-import OhMyBourbakiSoul.MyBasic.MySet.Subtype
 import OhMyBourbakiSoul.MyBasic.MyLogic.ExistsUniq
 
 open MySet
@@ -94,14 +93,14 @@ theorem range_subsets_codomain {f : X -→ Y} :
 
 def restrict
   (f : X -→ Y) (X' : MySet α) (h : X' ⊆ X) : X' -→ Y :=
-  x' ↦ f (lift_subtype h x')
+  (x' : X'.type) ↦ f (x'.lift_supset h)
 
 theorem restrict_compat
   {f : X -→ Y} {X' : MySet α} {h : X' ⊆ X} :
   ∀ x : X'.type,
-  f (lift_subtype h x) = (f.restrict X' h) x := by
+  f (x.lift_supset h) = (f.restrict X' h) x := by
   intro x
-  change (f (lift_subtype h x)) = (f (lift_subtype h x))
+  change (f (x.lift_supset h)) = (f (x.lift_supset h))
   rfl
 
 def trim (f : X -→ Y) : f.domain -→ f.range := by
@@ -119,14 +118,14 @@ theorem trim_compat {f : X -→ Y} :
 
 def expand
   (f : X -→ Y) (Y' : MySet β) (h : Y ⊆ Y') : X -→ Y' :=
-  x ↦ lift_subtype h (f x)
+  x ↦ (f x).lift_supset h
 
 theorem expand_compat
   {f : X -→ Y} {Y' : MySet β} {h : Y ⊆ Y'} :
   ∀ x : X.type,
-  lift_subtype h (f x) = (f.expand Y' h) x := by
+  (f x).lift_supset h = (f.expand Y' h) x := by
   intro x
-  change lift_subtype h (f x) = lift_subtype h (f x)
+  change (f x).lift_supset h = (f x).lift_supset h
   rfl
 
 def compose
@@ -297,7 +296,7 @@ theorem expand_inj
   intro x x' hxx'
   repeat rw [<-expand_compat] at hxx'
   rw [Subtype.eq_iff] at hxx'
-  repeat rw [lift_subtype_def] at hxx'
+  repeat rw [lift_supset_def] at hxx'
   rw [<-Subtype.eq_iff] at hxx'
   exact If.inj x x' hxx'
 

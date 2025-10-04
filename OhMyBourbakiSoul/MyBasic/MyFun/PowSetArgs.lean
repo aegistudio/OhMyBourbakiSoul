@@ -1,7 +1,7 @@
 import OhMyBourbakiSoul.MyBasic.MyFun.Basic
 import OhMyBourbakiSoul.MyBasic.MyLogic.Propositional
 import OhMyBourbakiSoul.MyBasic.MySet.OpsDef
-import OhMyBourbakiSoul.MyBasic.MySet.Subtype
+import OhMyBourbakiSoul.MyBasic.MySet.Restrict
 
 universe u v
 variable {α : Type u}

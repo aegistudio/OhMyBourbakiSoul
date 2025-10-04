@@ -1,5 +1,5 @@
 import OhMyBourbakiSoul.MyBasic.MySet.OpsDef
-import OhMyBourbakiSoul.MyBasic.MySet.Subtype
+import OhMyBourbakiSoul.MyBasic.MySet.Restrict
 import OhMyBourbakiSoul.MyBasic.MySet.Exclusive
 import OhMyBourbakiSoul.MyBasic.MyLogic.Quantifier
 

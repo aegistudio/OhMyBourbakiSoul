@@ -1,5 +1,5 @@
 import OhMyBourbakiSoul.MyBasic.MySet.OpsDef
-import OhMyBourbakiSoul.MyBasic.MySet.Subtype
+import OhMyBourbakiSoul.MyBasic.MySet.Restrict
 
 universe u v
 variable {α : Type u} {β : Type v}

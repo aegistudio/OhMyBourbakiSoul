@@ -87,6 +87,32 @@ theorem eq_iff {s₁ s₂ : MySet α} :
     repeat rw [<-mem_def]
     rw [h']
 
+-- Let's also define the type defined by the set.
+@[reducible]
+def type (s : MySet α) := Subtype s.pred
+
+instance instCoeType {s : MySet α} :
+  Coe (Subtype s.pred) (s.type) where
+  coe := id
+
+instance instCoeSubtype {s : MySet α} :
+  Coe (s.type) (Subtype s.pred) where
+  coe := id
+
+theorem type.membership {s : MySet α} (x : s.type) : x.val ∈ s := by
+  rw [mem_def]
+  exact x.property
+
+def typed {s : MySet α} (a : α) (h : a ∈ s) : s.type := by
+  apply Subtype.mk a
+  rw [<-mem_def]
+  exact h
+
+theorem typed_eta {s : MySet α} {a : α} {h : a ∈ s} :
+  (typed a h).val = a := by
+  unfold typed
+  rfl
+
 -- Every type has a corresponding universal set
 -- for it, such that ∀ (a : α), a ∈ (univ α)
 def univ (α : Type u) : MySet α := by
@@ -149,5 +175,26 @@ theorem empty_iff {O : MySet α} :
     have h' := h a
     rw [h']
     exact empty_def a
+
+abbrev nonempty (s : MySet α) := Nonempty s.type
+
+theorem empty_not_nonempty :
+  ¬((∅ : MySet α).nonempty) := by
+  intro h
+  rcases h with ⟨n, hn⟩
+  rw [<-mem_def] at hn
+  have := empty_def n
+  contradiction
+
+theorem not_empty_if_nonempty {s : MySet α} :
+  (s.nonempty) -> (s ≠ ∅) := by
+  intro hsn hse
+  rcases hsn with ⟨x, hx⟩
+  rw [eq_iff] at hse
+  have hsx := hse x
+  rw [<-mem_def] at hx
+  rw [hsx] at hx
+  have hxn := empty_def x
+  contradiction
 
 end MySet

@@ -133,4 +133,18 @@ theorem eq_iff_subset_and_supset {s₁ s₂ : MySet α} :
   rw [<-MyOrd.eq_iff_le_and_ge]
   repeat rw [MyOrd.MyCustomPartialOrd.lift_eq_iff]
 
+section
+
+variable {X X' : MySet α}
+
+def type.lift_supset (x : X.type) (h : X ⊆ X') : X'.type := by
+  rw [subset_def] at h
+  apply typed x.val
+  exact h x.val x.membership
+
+theorem lift_supset_def {h : X ⊆ X'} {x : X.type} :
+  (x.lift_supset h).val = x.val := by rfl
+
+end
+
 end MySet

@@ -1,6 +1,5 @@
 import OhMyBourbakiSoul.MyNat.Basic
 import OhMyBourbakiSoul.MyBasic.MySet.Basic
-import OhMyBourbakiSoul.MyBasic.MySet.Subtype
 
 open MySet
 

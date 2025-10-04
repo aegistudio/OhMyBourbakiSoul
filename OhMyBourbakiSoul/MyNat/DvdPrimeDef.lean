@@ -1,6 +1,6 @@
 import OhMyBourbakiSoul.MyNat.SetDef
 import OhMyBourbakiSoul.MyNat.SegDef
-import OhMyBourbakiSoul.MyBasic.MySet.Subtype
+import OhMyBourbakiSoul.MyBasic.MySet.Restrict
 import OhMyBourbakiSoul.MyNat.MulDef
 import OhMyBourbakiSoul.MyNat.MulOrd
 import OhMyBourbakiSoul.MyNat.DivModDef
